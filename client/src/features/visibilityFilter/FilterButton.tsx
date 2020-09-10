@@ -9,7 +9,8 @@ interface FilterButtonProps {
     text: string,
 }
 
-export default function FilterButton({ visibilityFilter, text }: FilterButtonProps): Element {
+// eslint-disable-next-line no-undef
+export default function FilterButton({ visibilityFilter, text }: FilterButtonProps): JSX.Element {
   const dispatch = useDispatch();
 
   const currentvisibilityFilter = useSelector(

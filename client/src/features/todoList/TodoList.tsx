@@ -19,7 +19,8 @@ const getVisibleTodos = (todos: Todo[], filter: VisibilityFilter) => {
   }
 };
 
-export default function TodoList(): Element {
+// eslint-disable-next-line no-undef
+export default function TodoList(): JSX.Element {
   const dispatch = useDispatch();
 
   const todos = useSelector(

@@ -1,7 +1,8 @@
 {
-  "name": "remote-work-equipment-stand-client",
+  "name": "remote-work-equipment-stand",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://artembaskal.github.io/remote-work-equipment-stand",
   "scripts": {
     "start": "react-scripts start",
     "start:dev": "TSC_COMPILE_ON_ERROR=true react-scripts start",

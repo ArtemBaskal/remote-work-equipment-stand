@@ -2,7 +2,8 @@ import React from 'react';
 import { VisibilityFilter } from 'features/visibilityFilter/visibilityFilterSlice';
 import FilterButton from './FilterButton';
 
-export default function Footer(): Element {
+// eslint-disable-next-line no-undef
+export default function Footer(): JSX.Element {
   return (
     <div>
       <span>Show: </span>

@@ -2,7 +2,8 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 import { addTodo } from './todoSlice';
 
-export default function AddTodo(): Element {
+// eslint-disable-next-line no-undef
+export default function AddTodo(): JSX.Element {
   const dispatch = useDispatch();
   const [text, setText] = React.useState('');
 
