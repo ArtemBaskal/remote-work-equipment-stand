@@ -1,14 +1,6 @@
 import React from 'react';
-import TodoList from 'features/todoList/TodoList';
-import AddTodo from 'features/todoList/AddTodo';
-import Footer from 'features/visibilityFilter/Footer';
+import Auth from 'features/auth/Auth';
 
-export default function App() {
-  return (
-    <div>
-      <AddTodo />
-      <TodoList />
-      <Footer />
-    </div>
-  );
-}
+const App = () => <Auth />;
+
+export default App;
