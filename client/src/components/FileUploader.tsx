@@ -7,6 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Alert } from '@material-ui/lab';
 import FolderIcon from '@material-ui/icons/AddToPhotos';
 import DeleteIcon from '@material-ui/icons/Delete';
+import axios from 'axios';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -74,11 +75,13 @@ const FileUploader = () => {
     e.preventDefault();
 
     const formData = new FormData();
-    formData.append('files[]', file);
+    formData.append('file', file);
 
-    await fetch('/', {
-      method: 'POST',
-      body: formData,
+    await axios({
+      method: 'post',
+      url: 'http://localhost:8080/upload-image',
+      data: formData,
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
 
     setOpen(true);

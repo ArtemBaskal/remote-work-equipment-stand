@@ -50,7 +50,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "yarn lint",
-      "pre-push": "CI=true react-scripts test && yarn deploy"
+      "pre-push": "yarn deploy"
     }
   },
   "eslintConfig": {
