@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "aa0dea32b48abcce6779c4e02b9930ca",
+    "revision": "8ee002e8f63dbcbb58248789a20dd83e",
     "url": "/remote-work-equipment-stand/index.html"
   },
   {
-    "revision": "f65fce704b3875b50893",
+    "revision": "f2f78db1700ae93a63a2",
     "url": "/remote-work-equipment-stand/static/css/main.5ecd60fb.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/remote-work-equipment-stand/static/js/2.5dbd3687.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "f65fce704b3875b50893",
-    "url": "/remote-work-equipment-stand/static/js/main.fd27c8ff.chunk.js"
+    "revision": "f2f78db1700ae93a63a2",
+    "url": "/remote-work-equipment-stand/static/js/main.f5c79506.chunk.js"
   },
   {
     "revision": "3bc0ab9cedd2a3b1ff69",
