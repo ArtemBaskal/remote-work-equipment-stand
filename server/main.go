@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"io"
+	"log"
 	"net/http"
 	"os"
 )
@@ -27,6 +29,43 @@ func handleJson(w http.ResponseWriter, r *http.Request) {
 		T    bool `json:"test"`
 	}
 	json.NewEncoder(w).Encode(Test{T: true, name: "name"})
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize: 1024,
+	WriteBufferSize: 1024,
+}
+
+func reader( conn *websocket.Conn){
+	for {
+		messageType, p, err := conn.ReadMessage()
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		log.Println(string(p))
+
+		if err := conn.WriteMessage(messageType, p); err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
+
+func handleWs(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	log.Println("Client successfully connected...")
+
+	reader(ws)
 }
 
 func fileUpload(w http.ResponseWriter, r *http.Request) (string, error) {
@@ -63,6 +102,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("../static")))
 	http.HandleFunc("/hello", handleHello)
 	http.HandleFunc("/json", handleJson)
+	http.HandleFunc("/ws", handleWs)
 	http.HandleFunc("/upload-image", uploadImageHandler)
-	http.ListenAndServe(port, nil)
+	log.Fatal(http.ListenAndServe(port, nil))
 }
