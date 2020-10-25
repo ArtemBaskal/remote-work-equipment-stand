@@ -39,11 +39,11 @@ func handleJson(w http.ResponseWriter, r *http.Request) {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize: 1024,
+	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-func reader(ws *websocket.Conn){
+func reader(ws *websocket.Conn) {
 	for {
 		_, p, err := ws.ReadMessage()
 

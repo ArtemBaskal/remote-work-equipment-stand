@@ -1,3 +1,5 @@
 .idea
 API_KEYS.json
 **/*.go
+server
+static
