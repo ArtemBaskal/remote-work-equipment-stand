@@ -1,12 +1,21 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-const initialState: any = {};
+export type AuthState = {
+    googleId: string,
+    imageUrl: string,
+    email: string,
+    name: string,
+    givenName: string,
+    familyName: string,
+}
+
+const initialState = {};
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    getProfile(state, action: PayloadAction<any>) {
+    getProfile(state, action: PayloadAction<AuthState>) {
       return action.payload;
     },
     clearProfile() {

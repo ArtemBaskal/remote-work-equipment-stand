@@ -1,0 +1,29 @@
+.board {
+    margin: 1rem;
+}
+
+.led {
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    margin: 1rem;
+}
+
+.led__container {
+    display: flex;
+    margin: 1rem;
+}
+
+.led__item {
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+}
+
+.led__off {
+    background-color: orangered;
+}
+
+.led__on {
+    background-color: springgreen;
+}

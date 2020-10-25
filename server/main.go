@@ -8,7 +8,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
+
+type Pins struct {
+	Pin1 bool `json:"pin1"`
+	Pin2 bool `json:"pin2"`
+	Pin3 bool `json:"pin3"`
+}
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
@@ -36,9 +43,9 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func reader( conn *websocket.Conn){
+func reader(ws *websocket.Conn){
 	for {
-		messageType, p, err := conn.ReadMessage()
+		_, p, err := ws.ReadMessage()
 
 		if err != nil {
 			fmt.Println(err)
@@ -47,11 +54,21 @@ func reader( conn *websocket.Conn){
 
 		log.Println(string(p))
 
-		if err := conn.WriteMessage(messageType, p); err != nil {
-			log.Println(err)
-			return
+		if string(p) == "OFF" {
+			p := Pins{false, false, false}
+			ws.WriteJSON(p)
+		}
+
+		if string(p) == "ON" {
+			p := Pins{true, true, true}
+			ws.WriteJSON(p)
 		}
 	}
+}
+
+func writer(ws *websocket.Conn) {
+	p := Pins{true, false, true}
+	ws.WriteJSON(p)
 }
 
 func handleWs(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +82,11 @@ func handleWs(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Client successfully connected...")
 
-	reader(ws)
+	go reader(ws)
+
+	timer1 := time.NewTimer(time.Second * 2)
+	<-timer1.C
+	go writer(ws)
 }
 
 func fileUpload(w http.ResponseWriter, r *http.Request) (string, error) {
