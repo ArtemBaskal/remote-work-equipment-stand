@@ -3,3 +3,6 @@ API_KEYS.json
 **/*.go
 server
 static
+.vs
+bin
+obj
