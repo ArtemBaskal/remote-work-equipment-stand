@@ -21,8 +21,15 @@ POST request in body should contain JSON structure. This structure discribe stat
 POST request return HTTP status code 400 (Bad Request) if something going wrong, else return 200 OK.
 Examples: 
 GET request:
+
+
+
 ![Picture_2](for_readme/GET_request.jpg)
 ![Picture_3](for_readme/Get_request_result.jpg)
-POST request (set pin number 7 in high state)
+POST request (set pin number 7 in high state):
+
+
+
+
 ![Picture_3](for_readme/POST_request.jpg)
 ![Picture_4](for_readme/POST_request_result.jpg)
