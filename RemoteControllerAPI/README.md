@@ -19,14 +19,20 @@ This API working with GET and POST HTTP requests
 GET response contains JSON with all available microcontroller digital GPIO states (LOW/HIGH)
 POST request in body should contain JSON structure. This structure discribe state of the pin: {"pin_number":2, "signal_level":1} - set the pin number 2 in HIGH level output status
 POST request return HTTP status code 400 (Bad Request) if something going wrong, else return 200 OK.
-Examples: 
-GET request:
+
+
+# Examples:
+
+# GET request:
 
 
 
 ![Picture_2](for_readme/GET_request.jpg)
 ![Picture_3](for_readme/Get_request_result.jpg)
-POST request (set pin number 7 in high state):
+
+
+
+# POST request (set pin number 7 in high state):
 
 
 
