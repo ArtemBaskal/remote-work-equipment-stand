@@ -1,7 +1,7 @@
 # Launching requirments
 This WebAPI working on ASP.NET Core 3.1
 For working API should be installed ASP.NET Core 3.1 or latest version [ASP.NET Core](https://dotnet.microsoft.com/download/dotnet-core/3.1).
-Also, should be phisically connected Arduino with special sketch (see [Arduino_Sketches()]) to the server (where API running). if Arduino not connected
+Also, should be phisically connected Arduino with special sketch (see Arduino_Sketches) to the server (where API running). if Arduino not connected
 or correct sketch not running on the Arduino, program throw exception after launch. 
 
 # Development requirments
