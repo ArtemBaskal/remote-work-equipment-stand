@@ -9,6 +9,7 @@ using System.IO.Ports;
 using System.Threading;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 
 namespace RemoteStandAPI.Controllers
 {
@@ -33,14 +34,21 @@ namespace RemoteStandAPI.Controllers
         [HttpGet]
         public JsonResult Get()
         {
-            return new JsonResult(arduino.Http_Get_Gpio_Status());
+            return new JsonResult(arduino.Get_GPIO_Outputs_Signal_Level());
         }
 
         // Working with HTTP POST method
         [HttpPost]
-        public HttpResponseMessage Post([FromBody]Digital_GPIO_Output digital_pin)
+        public HttpResponseMessage Post([FromBody]Pin_Setting post_settings)
         {
-            return arduino.Http_Post_Gpio_Signal_Level(digital_pin);
+            // Bad input json
+            if (Ids_Usings_Pins.Using_Digital_GPIO_Arduino_Outputs.ContainsKey(post_settings.button_number) == false)
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+            Console.WriteLine($"Recieved json: {JsonSerializer.Serialize(post_settings)}");
+            if (arduino.Post_Request_To_GPIO(post_settings) == 0) {
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+            }
+            return new HttpResponseMessage(HttpStatusCode.OK);
         }
     }
 }
