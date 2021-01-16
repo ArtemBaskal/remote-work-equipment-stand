@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SignalingChannel } from 'helpers/SignalingChannel';
 import { generateQueryParam } from 'helpers/helpers';
+import { LinearProgressWithLabel } from 'components/LinearProgressWithLabel';
 import 'features/rtc/RTCPlayer.css';
 import {
   Avatar,
@@ -49,7 +50,13 @@ const useStyles = makeStyles((theme) => ({
       margin: theme.spacing(1),
     },
   },
+  progress: {
+    width: '100%',
+  },
 }));
+
+const MIN = 0;
+const normalize = (value, MAX) => ((value - MIN) * 100) / (MAX - MIN);
 
 const RTCPlayer = () => {
   const classes = useStyles();
@@ -306,7 +313,13 @@ const RTCPlayer = () => {
           </ListItem>
         </List>
         )}
-        <br />
+        {progressValue > EMPTY_PROGRESS
+        && selectedFile
+          ? (
+            <div className={classes.progress}>
+              <LinearProgressWithLabel value={normalize(progressValue, maxProgress)} />
+            </div>
+          ) : <br />}
         <Button
           component="label"
           htmlFor="files"
@@ -340,9 +353,6 @@ const RTCPlayer = () => {
             Файл успешно отправлен
           </Alert>
         </Snackbar>
-        {progressValue > EMPTY_PROGRESS
-        && selectedFile
-        && <progress max={maxProgress} value={progressValue} />}
       </section>
       <h4>Видео стенда</h4>
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
