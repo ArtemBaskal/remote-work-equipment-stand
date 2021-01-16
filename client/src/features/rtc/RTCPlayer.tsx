@@ -17,6 +17,7 @@ import {
 import FolderIcon from '@material-ui/icons/AddToPhotos';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { Alert } from '@material-ui/lab';
+import { makeStyles } from '@material-ui/core/styles';
 
 const QUERY_PARAM_ROOM_NAME = 'room';
 const FILE_DATA_CHANNEL_BINARY_TYPE = 'arraybuffer';
@@ -40,7 +41,19 @@ const EMPTY_PROGRESS = 0;
 const SNACKBAR_DELAY = 6000;
 const polite = true;
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 1,
+    maxWidth: '20rem',
+    '& > *': {
+      margin: theme.spacing(1),
+    },
+  },
+}));
+
 const RTCPlayer = () => {
+  const classes = useStyles();
+
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const dataChannelFileSenderRef = useRef<HTMLInputElement>(null);
   const pcRef = useRef(null);
@@ -159,6 +172,39 @@ const RTCPlayer = () => {
     });
   }, []);
 
+  useEffect(() => {
+    /* TODO - add drop it text on fullscreen */
+    const dropbox = window;
+
+    dropbox.addEventListener('dragenter', dragenter, false);
+    dropbox.addEventListener('dragover', dragover, false);
+    dropbox.addEventListener('drop', drop, false);
+
+    function dragenter(e: any) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function dragover(e: any) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function drop(e: any) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      const { dataTransfer: { files: [file] } } = e;
+      setSelectedFile(file);
+    }
+
+    return () => {
+      dropbox.removeEventListener('dragenter', dragenter, false);
+      dropbox.removeEventListener('dragover', dragover, false);
+      dropbox.removeEventListener('drop', drop, false);
+    };
+  }, []);
+
   const onChange = (e) => {
     const [file] = e.target.files;
     setSelectedFile(file);
@@ -186,7 +232,6 @@ const RTCPlayer = () => {
     Beyond that, things get more complicated.
     https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
     */
-
     const CHUNK_SIZE = 2 ** 14;
 
     const fileReader = new FileReader();
@@ -236,7 +281,7 @@ const RTCPlayer = () => {
   };
 
   return (
-    <div className="player__container">
+    <div className={classes.root}>
       <section>
         <h4>Отправка файла прошивки</h4>
         <input type="file" id="files" ref={dataChannelFileSenderRef} style={{ display: 'none' }} onChange={onChange} />
