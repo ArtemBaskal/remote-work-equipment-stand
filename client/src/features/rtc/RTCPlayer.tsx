@@ -226,6 +226,19 @@ const RTCPlayer = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handler = () => {
+      if (document.visibilityState === 'visible' && document.pictureInPictureElement) {
+        document.exitPictureInPicture();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handler);
+    return () => {
+      document.removeEventListener('visibilitychange', handler);
+    };
+  }, []);
+
   const onChange = (e) => {
     const [file] = e.target.files;
     setSelectedFile(file);
@@ -303,6 +316,14 @@ const RTCPlayer = () => {
 
   const onChangeRoom = (e) => {
     setRoom(e.target.value);
+  };
+
+  const togglePictureInPicture = (e) => {
+    if (document.pictureInPictureElement) {
+      document.exitPictureInPicture();
+    } else if (document.pictureInPictureEnabled) {
+      e.target.requestPictureInPicture();
+    }
   };
 
   return (
@@ -404,7 +425,7 @@ const RTCPlayer = () => {
       </section>
       <Typography variant="h5" gutterBottom>Видео стенда</Typography>
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <video ref={remoteVideoRef} autoPlay playsInline />
+      <video ref={remoteVideoRef} autoPlay playsInline onClick={togglePictureInPicture} />
     </div>
   );
 };
