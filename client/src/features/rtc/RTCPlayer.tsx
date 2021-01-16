@@ -10,10 +10,14 @@ import {
   IconButton,
   List,
   ListItem,
+  Typography,
+  FormControl,
   ListItemAvatar,
   ListItemSecondaryAction,
   ListItemText,
   Snackbar,
+  InputLabel,
+  Select,
 } from '@material-ui/core';
 import FolderIcon from '@material-ui/icons/AddToPhotos';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -40,6 +44,7 @@ const configuration = {
 
 const EMPTY_PROGRESS = 0;
 const SNACKBAR_DELAY = 6000;
+const NO_ROOM = '';
 const polite = true;
 
 const useStyles = makeStyles((theme) => ({
@@ -52,6 +57,10 @@ const useStyles = makeStyles((theme) => ({
   },
   progress: {
     width: '100%',
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
   },
 }));
 
@@ -70,12 +79,16 @@ const RTCPlayer = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [snackbarOpened, setSnackbarOpened] = useState(false);
 
+  const [room, setRoom] = useState<string>(NO_ROOM);
+
   const resetFileSelect = () => setSelectedFile(null);
   const closeSnackbar = () => setSnackbarOpened(false);
 
   useEffect(() => {
-    /* TODO add room selection */
-    const room = 1;
+    if (room === NO_ROOM) {
+      return;
+    }
+
     const roomQueryParam = generateQueryParam(QUERY_PARAM_ROOM_NAME, room);
     const ws = new WebSocket(`wss://wss-signaling.herokuapp.com/${roomQueryParam && `?${roomQueryParam}`}`);
 
@@ -177,7 +190,8 @@ const RTCPlayer = () => {
       channel.addEventListener('open', onSendChannelStateChange);
       channel.addEventListener('close', onSendChannelStateChange);
     });
-  }, []);
+    /* TODO clear listeners on room change */
+  }, [room]);
 
   useEffect(() => {
     /* TODO - add drop it text on fullscreen */
@@ -287,10 +301,44 @@ const RTCPlayer = () => {
     };
   };
 
+  const onChangeRoom = (e) => {
+    setRoom(e.target.value);
+  };
+
   return (
     <div className={classes.root}>
+      <FormControl variant="outlined" className={classes.formControl}>
+        <InputLabel htmlFor="outlined-room-native-simple">Комната</InputLabel>
+        <Select
+          native
+          value={room}
+          onChange={onChangeRoom}
+          label="Комната"
+          inputProps={{
+            name: 'комната',
+            id: 'outlined-room-native-simple',
+          }}
+        >
+          {Array.from(({ length: 4 }), (_, idx) => idx)
+            .map((idx) => {
+              const noRoom = idx === 0;
+              const roomIdx = noRoom ? NO_ROOM : idx.toString();
+
+              return (
+                <option
+                  key={roomIdx}
+                  value={roomIdx}
+                  disabled={noRoom}
+                  aria-label={noRoom ? 'None' : roomIdx}
+                >
+                  {roomIdx}
+                </option>
+              );
+            })}
+        </Select>
+      </FormControl>
       <section>
-        <h4>Отправка файла прошивки</h4>
+        <Typography variant="h5" gutterBottom>Отправка файла прошивки</Typography>
         <input type="file" id="files" ref={dataChannelFileSenderRef} style={{ display: 'none' }} onChange={onChange} />
         {selectedFile && (
         <List>
@@ -354,7 +402,7 @@ const RTCPlayer = () => {
           </Alert>
         </Snackbar>
       </section>
-      <h4>Видео стенда</h4>
+      <Typography variant="h5" gutterBottom>Видео стенда</Typography>
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video ref={remoteVideoRef} autoPlay playsInline />
     </div>
