@@ -3,6 +3,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import { SignalingChannel } from 'helpers/SignalingChannel';
 import { generateQueryParam } from 'helpers/helpers';
 import 'features/rtc/RTCPlayer.css';
+import {
+  Avatar,
+  Button,
+  IconButton,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemSecondaryAction,
+  ListItemText,
+  Snackbar,
+} from '@material-ui/core';
+import FolderIcon from '@material-ui/icons/AddToPhotos';
+import DeleteIcon from '@material-ui/icons/Delete';
+import { Alert } from '@material-ui/lab';
 
 const QUERY_PARAM_ROOM_NAME = 'room';
 const FILE_DATA_CHANNEL_BINARY_TYPE = 'arraybuffer';
@@ -23,6 +37,7 @@ const configuration = {
 };
 
 const EMPTY_PROGRESS = 0;
+const SNACKBAR_DELAY = 6000;
 const polite = true;
 
 const RTCPlayer = () => {
@@ -32,8 +47,14 @@ const RTCPlayer = () => {
 
   const [maxProgress, setMaxProgress] = useState(EMPTY_PROGRESS);
   const [progressValue, setProgressValue] = useState(EMPTY_PROGRESS);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [snackbarOpened, setSnackbarOpened] = useState(false);
+
+  const resetFileSelect = () => setSelectedFile(null);
+  const closeSnackbar = () => setSnackbarOpened(false);
 
   useEffect(() => {
+    /* TODO add room selection */
     const room = 1;
     const roomQueryParam = generateQueryParam(QUERY_PARAM_ROOM_NAME, room);
     const ws = new WebSocket(`wss://wss-signaling.herokuapp.com/${roomQueryParam && `?${roomQueryParam}`}`);
@@ -138,15 +159,12 @@ const RTCPlayer = () => {
     });
   }, []);
 
-  const onClick = () => {
-    dataChannelFileSenderRef.current.click();
-  };
-
   const onChange = (e) => {
     const [file] = e.target.files;
-    const { name, size } = file;
-    setMaxProgress(size);
+    setSelectedFile(file);
+  };
 
+  const sendFile = () => {
     /*
           Label may not be longer than 65,535 bytes.
           https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createDataChannel#parameters:~:text=channel.%20This%20string-,may%20not%20be%20longer%20than%2065%2C535%20bytes.
@@ -154,9 +172,11 @@ const RTCPlayer = () => {
           https://www.ibm.com/support/knowledgecenter/SSEQVQ_8.1.10/client/c_cmd_filespecsyntax.html
       */
     const dataConstraint = null;
-    /* TODO improve file transfering https://github.com/webrtc/samples/blob/gh-pages/src/content/datachannel/filetransfer/js/main.js */
-    const sendFileChannel = pcRef.current.createDataChannel(name, dataConstraint);
+    /* TODO improve selectedFile transfering https://github.com/webrtc/samples/blob/gh-pages/src/content/datachannel/filetransfer/js/main.js */
+    /* TODO reuse data channel */
+    const sendFileChannel = pcRef.current.createDataChannel(selectedFile.name, dataConstraint);
     sendFileChannel.binaryType = FILE_DATA_CHANNEL_BINARY_TYPE;
+    setMaxProgress(selectedFile.size);
 
     /*
     Firefox cannot send a message larger than 16 Kbytes to Chrome
@@ -173,7 +193,7 @@ const RTCPlayer = () => {
     let offset = 0;
 
     fileReader.addEventListener('error', (error) => {
-      console.error('Error reading file: ', error);
+      console.error('Error reading selectedFile: ', error);
     });
 
     fileReader.addEventListener('abort', (event) => {
@@ -182,7 +202,7 @@ const RTCPlayer = () => {
 
     const readSlice = (byteOffset) => {
       console.log('readSlice', byteOffset);
-      const slice = file.slice(offset, byteOffset + CHUNK_SIZE);
+      const slice = selectedFile.slice(offset, byteOffset + CHUNK_SIZE);
       fileReader.readAsArrayBuffer(slice);
     };
 
@@ -190,20 +210,23 @@ const RTCPlayer = () => {
       console.log('FileReader.onload', e);
       sendFileChannel.send(e.target.result);
 
-      if (offset < file.size) {
+      if (offset < selectedFile.size) {
         readSlice(offset);
       } else {
         sendFileChannel.send(END_OF_FILE_MESSAGE);
+        sendFileChannel.close();
+        setSelectedFile(null);
+        /* Reset progress */
+        setMaxProgress(EMPTY_PROGRESS);
+        setProgressValue(EMPTY_PROGRESS);
+        resetFileSelect();
+        setSnackbarOpened(true);
       }
     });
 
     fileReader.addEventListener('progress', (e) => {
       offset += e.loaded;
       setProgressValue(offset);
-    });
-
-    fileReader.addEventListener('loadend', (e) => {
-      console.log('loadend', e);
     });
 
     sendFileChannel.onopen = () => {
@@ -214,16 +237,69 @@ const RTCPlayer = () => {
 
   return (
     <div className="player__container">
-      <hr />
       <section>
-        <h3>Data channel file sender</h3>
-        <input type="file" ref={dataChannelFileSenderRef} style={{ display: 'none' }} onChange={onChange} />
+        <h4>Отправка файла прошивки</h4>
+        <input type="file" id="files" ref={dataChannelFileSenderRef} style={{ display: 'none' }} onChange={onChange} />
+        {selectedFile && (
+        <List>
+          <ListItem>
+            <ListItemAvatar>
+              <Avatar>
+                <FolderIcon />
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText primary={selectedFile.name} secondary={selectedFile.lastModifiedDate.toLocaleString()} title={`${selectedFile.size} байт`} />
+            <ListItemSecondaryAction>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={resetFileSelect}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </ListItemSecondaryAction>
+          </ListItem>
+        </List>
+        )}
         <br />
-        <button type="button" onClick={onClick}>Отправить файл</button>
-        {progressValue > EMPTY_PROGRESS && <progress max={maxProgress} value={progressValue} />}
-        <hr />
+        <Button
+          component="label"
+          htmlFor="files"
+          variant="contained"
+          size="small"
+          id="files"
+        >
+          Выбрать
+        </Button>
+        {selectedFile && (
+          <>
+            <Button
+              component="button"
+              color="primary"
+              onClick={sendFile}
+              variant="contained"
+              type="submit"
+              size="small"
+            >
+              Отправить
+            </Button>
+          </>
+        )}
+        <Snackbar
+          open={snackbarOpened}
+          autoHideDuration={SNACKBAR_DELAY}
+          onClose={closeSnackbar}
+          onClick={closeSnackbar}
+        >
+          <Alert severity="success">
+            Файл успешно отправлен
+          </Alert>
+        </Snackbar>
+        {progressValue > EMPTY_PROGRESS
+        && selectedFile
+        && <progress max={maxProgress} value={progressValue} />}
       </section>
-      <h4>Удалённое видео</h4>
+      <h4>Видео стенда</h4>
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video ref={remoteVideoRef} autoPlay playsInline />
     </div>
