@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/remote-work-equipment-stand/static/css/main.2494a95c.chunk.css",
-    "main.js": "/remote-work-equipment-stand/static/js/main.ec1ae256.chunk.js",
-    "main.js.map": "/remote-work-equipment-stand/static/js/main.ec1ae256.chunk.js.map",
+    "main.js": "/remote-work-equipment-stand/static/js/main.7f5d45fb.chunk.js",
+    "main.js.map": "/remote-work-equipment-stand/static/js/main.7f5d45fb.chunk.js.map",
     "runtime-main.js": "/remote-work-equipment-stand/static/js/runtime-main.1fa7f728.js",
     "runtime-main.js.map": "/remote-work-equipment-stand/static/js/runtime-main.1fa7f728.js.map",
     "static/js/2.d7bd7245.chunk.js": "/remote-work-equipment-stand/static/js/2.d7bd7245.chunk.js",
     "static/js/2.d7bd7245.chunk.js.map": "/remote-work-equipment-stand/static/js/2.d7bd7245.chunk.js.map",
     "index.html": "/remote-work-equipment-stand/index.html",
-    "precache-manifest.b609606d61a5fdab1b47f45e51b7877a.js": "/remote-work-equipment-stand/precache-manifest.b609606d61a5fdab1b47f45e51b7877a.js",
+    "precache-manifest.34895e04ff0301e39744fa22c8f29aac.js": "/remote-work-equipment-stand/precache-manifest.34895e04ff0301e39744fa22c8f29aac.js",
     "service-worker.js": "/remote-work-equipment-stand/service-worker.js",
     "static/css/main.2494a95c.chunk.css.map": "/remote-work-equipment-stand/static/css/main.2494a95c.chunk.css.map",
     "static/js/2.d7bd7245.chunk.js.LICENSE.txt": "/remote-work-equipment-stand/static/js/2.d7bd7245.chunk.js.LICENSE.txt"
@@ -17,6 +17,6 @@
     "static/js/runtime-main.1fa7f728.js",
     "static/js/2.d7bd7245.chunk.js",
     "static/css/main.2494a95c.chunk.css",
-    "static/js/main.ec1ae256.chunk.js"
+    "static/js/main.7f5d45fb.chunk.js"
   ]
 }
