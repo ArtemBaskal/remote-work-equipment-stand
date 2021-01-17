@@ -326,12 +326,16 @@ const RTCPlayer = () => {
         setProgressValue(EMPTY_PROGRESS);
         resetFileSelect();
         setSnackbarOpened(true);
-      } else if (sendFileChannel.bufferedAmount < CHUNK_SIZE / 2) {
-        readSlice(offset);
+      } else {
+        // eslint-disable-next-line no-lonely-if
+        if (sendFileChannel.bufferedAmount < sendFileChannel.bufferedAmountLowThreshold) {
+          readSlice(offset);
+        }
+        // Otherwise wait for bufferedamountlow event to trigger reading more data
       }
     });
 
-    sendFileChannel.bufferedAmountLowThreshold = CHUNK_SIZE / 2;
+    sendFileChannel.bufferedAmountLowThreshold = CHUNK_SIZE * 8;
     sendFileChannel.addEventListener('bufferedamountlow', () => {
       readSlice(offset);
     });
@@ -340,8 +344,6 @@ const RTCPlayer = () => {
       const FIRST_BYTE_SLICE_NUMBER = 0;
       readSlice(FIRST_BYTE_SLICE_NUMBER);
     };
-
-    /* TODO clear event listeners */
   };
 
   const onChangeRoom = (e) => {
