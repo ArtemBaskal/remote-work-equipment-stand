@@ -283,7 +283,10 @@ const RTCPlayer = () => {
     Beyond that, things get more complicated.
     https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
     */
-    const CHUNK_SIZE = 2 ** 14;
+    /* TODO find out optimal buffer size by speed and reliability */
+    // 2 ** 14 === 16384;
+    // 2 ** 16 === 65535;
+    const CHUNK_SIZE = 16384;
 
     const fileReader = new FileReader();
     let offset = 0;
@@ -301,14 +304,20 @@ const RTCPlayer = () => {
       const slice = selectedFile.slice(offset, byteOffset + CHUNK_SIZE);
       fileReader.readAsArrayBuffer(slice);
     };
-
+    // TODO UPDATE PAGE TITLE ON FILE LOAD
     fileReader.addEventListener('load', (e) => {
       console.log('FileReader.onload', e);
-      sendFileChannel.send(e.target.result);
+      if (sendFileChannel.readyState !== 'open') {
+        console.warn('sendFileChannel.readyState is not open:', sendFileChannel.readyState);
+        return;
+      }
+      const buffer = e.target.result;
+      sendFileChannel.send(buffer);
 
-      if (offset < selectedFile.size) {
-        readSlice(offset);
-      } else {
+      offset += buffer.byteLength;
+      setProgressValue(offset);
+
+      if (offset >= selectedFile.size) {
         sendFileChannel.send(END_OF_FILE_MESSAGE);
         sendFileChannel.close();
         setSelectedFile(null);
@@ -317,12 +326,14 @@ const RTCPlayer = () => {
         setProgressValue(EMPTY_PROGRESS);
         resetFileSelect();
         setSnackbarOpened(true);
+      } else if (sendFileChannel.bufferedAmount < CHUNK_SIZE / 2) {
+        readSlice(offset);
       }
     });
 
-    fileReader.addEventListener('progress', (e) => {
-      offset += e.loaded;
-      setProgressValue(offset);
+    sendFileChannel.bufferedAmountLowThreshold = CHUNK_SIZE / 2;
+    sendFileChannel.addEventListener('bufferedamountlow', () => {
+      readSlice(offset);
     });
 
     sendFileChannel.onopen = () => {
