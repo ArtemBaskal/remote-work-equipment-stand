@@ -71,7 +71,6 @@ const RTCPlayer = () => {
   const classes = useStyles();
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const dataChannelFileSenderRef = useRef<HTMLInputElement>(null);
   const pcRef = useRef(null);
 
   const [maxProgress, setMaxProgress] = useState(EMPTY_PROGRESS);
@@ -92,105 +91,123 @@ const RTCPlayer = () => {
     const roomQueryParam = generateQueryParam(QUERY_PARAM_ROOM_NAME, room);
     const ws = new WebSocket(`wss://wss-signaling.herokuapp.com/${roomQueryParam && `?${roomQueryParam}`}`);
 
-    const signaling = new SignalingChannel(ws);
-
-    const pc = new RTCPeerConnection(configuration);
-    pcRef.current = pc;
-
-    pc.ontrack = ({ track, streams: [stream] }) => {
-      // once media for a remote track arrives, show it in the remote video element
-      // eslint-disable-next-line no-param-reassign
-      track.onunmute = () => {
-        // don't set srcObject again if it is already set.
-        if (remoteVideoRef.current.srcObject) {
-          return;
-        }
-        remoteVideoRef.current.srcObject = stream;
-      };
+    let signaling;
+    const onCloseWS = (e) => {
+      console.log('CLOSE WS', e);
     };
+    const onOpenWS = (e) => {
+      console.log('OPEN WS', e);
+      signaling = new SignalingChannel(ws);
 
-    // - The perfect negotiation logic, separated from the rest of the application ---
+      const pc = new RTCPeerConnection(configuration);
+      pcRef.current = pc;
 
-    // keep track of some negotiation state to prevent races and errors
-    let makingOffer = false;
-    let ignoreOffer = false;
-    let isSettingRemoteAnswerPending = false;
-
-    // send any ice candidates to the other peer
-    pc.onicecandidate = ({ candidate }) => {
-      signaling.send({ candidate });
-    };
-
-    // let the "negotiationneeded" event trigger offer generation
-    pc.onnegotiationneeded = async () => {
-      try {
-        makingOffer = true;
-        await pc.setLocalDescription();
-        signaling.send({ description: pc.localDescription });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        makingOffer = false;
-      }
-    };
-
-    pc.oniceconnectionstatechange = () => {
-      if (pc.iceConnectionState === 'failed') {
-        pc.restartIce();
-      }
-    };
-
-    signaling.onmessage = async ({ data, data: { description, candidate } }) => {
-      console.log(data);
-
-      try {
-        if (description) {
-          // An offer may come in while we are busy processing SRD(answer).
-          // In this case, we will be in "stable" by the time the offer is processed
-          // so it is safe to chain it on our Operations Chain now.
-          const readyForOffer = !makingOffer
-                        && (pc.signalingState === 'stable' || isSettingRemoteAnswerPending);
-          const offerCollision = description.type === 'offer' && !readyForOffer;
-
-          ignoreOffer = !polite && offerCollision;
-          if (ignoreOffer) {
+      pc.ontrack = ({ track, streams: [stream] }) => {
+        // once media for a remote track arrives, show it in the remote video element
+        // eslint-disable-next-line no-param-reassign
+        track.onunmute = () => {
+          // don't set srcObject again if it is already set.
+          if (remoteVideoRef.current.srcObject) {
             return;
           }
-          isSettingRemoteAnswerPending = description.type === 'answer';
-          await pc.setRemoteDescription(description); // SRD rolls back as needed
-          isSettingRemoteAnswerPending = false;
-          if (description.type === 'offer') {
-            await pc.setLocalDescription();
-            signaling.send({ description: pc.localDescription });
-          }
-        } else if (candidate) {
-          try {
-            await pc.addIceCandidate(candidate);
-          } catch (err) {
-            if (!ignoreOffer) {
-              throw err;
-            } // Suppress ignored offer's candidates
-          }
+          remoteVideoRef.current.srcObject = stream;
+        };
+      };
+
+      // - The perfect negotiation logic, separated from the rest of the application ---
+
+      // keep track of some negotiation state to prevent races and errors
+      let makingOffer = false;
+      let ignoreOffer = false;
+      let isSettingRemoteAnswerPending = false;
+
+      // send any ice candidates to the other peer
+      pc.onicecandidate = ({ candidate }) => {
+        signaling.send({ candidate });
+      };
+
+      // let the "negotiationneeded" event trigger offer generation
+      pc.onnegotiationneeded = async () => {
+        try {
+          makingOffer = true;
+          await pc.setLocalDescription();
+          signaling.send({ description: pc.localDescription });
+        } catch (err) {
+          console.error(err);
+        } finally {
+          makingOffer = false;
         }
-      } catch (err) {
-        console.error(err);
-      }
-    };
+      };
 
-    const onSendChannelStateChange = (e) => {
-      const { readyState } = e.target;
-      console.log('Send channel state is: %s', readyState);
-    };
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'failed') {
+          pc.restartIce();
+        }
+      };
 
-    /* TODO remove as far as we do not accept any messages */
-    pc.addEventListener('datachannel', ({ channel }) => {
-      channel.addEventListener('message', (event) => {
-        console.log('Received Message: %s', event.data);
+      signaling.onmessage = async ({ data, data: { description, candidate } }) => {
+        console.log(data);
+
+        try {
+          if (description) {
+            // An offer may come in while we are busy processing SRD(answer).
+            // In this case, we will be in "stable" by the time the offer is processed
+            // so it is safe to chain it on our Operations Chain now.
+            const readyForOffer = !makingOffer
+                && (pc.signalingState === 'stable' || isSettingRemoteAnswerPending);
+            const offerCollision = description.type === 'offer' && !readyForOffer;
+
+            ignoreOffer = !polite && offerCollision;
+            if (ignoreOffer) {
+              return;
+            }
+            isSettingRemoteAnswerPending = description.type === 'answer';
+            await pc.setRemoteDescription(description); // SRD rolls back as needed
+            isSettingRemoteAnswerPending = false;
+            if (description.type === 'offer') {
+              await pc.setLocalDescription();
+              signaling.send({ description: pc.localDescription });
+            }
+          } else if (candidate) {
+            try {
+              await pc.addIceCandidate(candidate);
+            } catch (err) {
+              if (!ignoreOffer) {
+                throw err;
+              } // Suppress ignored offer's candidates
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      const onSendChannelStateChange = ({ target: { readyState } }) => {
+        console.log('Send channel state is: %s', readyState);
+      };
+
+      /* TODO remove as far as we do not accept any messages */
+      pc.addEventListener('datachannel', ({ channel }) => {
+        channel.addEventListener('message', (event) => {
+          console.log('Received Message: %s', event.data);
+        });
+        channel.addEventListener('open', onSendChannelStateChange);
+        channel.addEventListener('close', onSendChannelStateChange);
       });
-      channel.addEventListener('open', onSendChannelStateChange);
-      channel.addEventListener('close', onSendChannelStateChange);
-    });
-    /* TODO clear listeners on room change */
+    };
+
+    ws.addEventListener('open', onOpenWS);
+    ws.addEventListener('close', onCloseWS);
+
+    // eslint-disable-next-line consistent-return
+    return () => {
+      ws.close(1000, 'change room');
+      ws.removeEventListener('open', onOpenWS);
+      if (signaling) {
+        signaling.unsubscribe();
+      }
+      remoteVideoRef.current.srcObject = null;
+    };
   }, [room]);
 
   useEffect(() => {
@@ -312,6 +329,8 @@ const RTCPlayer = () => {
       const FIRST_BYTE_SLICE_NUMBER = 0;
       readSlice(FIRST_BYTE_SLICE_NUMBER);
     };
+
+    /* TODO clear event listeners */
   };
 
   const onChangeRoom = (e) => {
@@ -319,6 +338,10 @@ const RTCPlayer = () => {
   };
 
   const togglePictureInPicture = (e) => {
+    if (!remoteVideoRef.current?.srcObject) {
+      return;
+    }
+
     if (document.pictureInPictureElement) {
       document.exitPictureInPicture();
     } else if (document.pictureInPictureEnabled) {
@@ -328,15 +351,15 @@ const RTCPlayer = () => {
 
   return (
     <div className={classes.root}>
-      <FormControl variant="outlined" className={classes.formControl}>
-        <InputLabel htmlFor="outlined-room-native-simple">Комната</InputLabel>
+      <FormControl variant="filled" className={classes.formControl}>
+        <InputLabel htmlFor="outlined-room-native-simple">Стенд</InputLabel>
         <Select
           native
           value={room}
           onChange={onChangeRoom}
-          label="Комната"
+          label="Стенда"
           inputProps={{
-            name: 'комната',
+            name: 'Стенд',
             id: 'outlined-room-native-simple',
           }}
         >
@@ -360,7 +383,7 @@ const RTCPlayer = () => {
       </FormControl>
       <section>
         <Typography variant="h5" gutterBottom>Отправка файла прошивки</Typography>
-        <input type="file" id="files" ref={dataChannelFileSenderRef} style={{ display: 'none' }} onChange={onChange} />
+        <input type="file" id="files" style={{ display: 'none' }} onChange={onChange} />
         {selectedFile && (
         <List>
           <ListItem>
@@ -425,7 +448,7 @@ const RTCPlayer = () => {
       </section>
       <Typography variant="h5" gutterBottom>Видео стенда</Typography>
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <video ref={remoteVideoRef} autoPlay playsInline onClick={togglePictureInPicture} />
+      <video ref={remoteVideoRef} autoPlay playsInline onClick={togglePictureInPicture} poster={`${process.env.PUBLIC_URL}/chip.png`} />
     </div>
   );
 };

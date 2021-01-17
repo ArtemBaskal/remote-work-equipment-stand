@@ -8,9 +8,22 @@ class SignalingChannel {
   }
 
   set onmessage(handler) {
-    this.signaling.onmessage = ({ data }) => {
+    const onMessage = ({ data }) => {
       handler(JSON.parse(data));
     };
+
+    this.signaling.addEventListener('message', onMessage);
+
+    /* TODO refactor */
+    this.unsubscribe = () => {
+      console.log('unsubscribe from message');
+      this.signaling.removeEventListener('message', onMessage);
+    };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  unsubscribe() {
+    console.error('Method unsubscribe is not implemented');
   }
 }
 
