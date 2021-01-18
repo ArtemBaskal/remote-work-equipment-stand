@@ -111,6 +111,7 @@ const RTCPlayer = () => {
     const onOpenWS = (e) => {
       console.log('OPEN WS', e);
       signaling = new SignalingChannel(ws);
+      signaling.send({ getRemoteMedia: true });
 
       const pc = new RTCPeerConnection(configuration);
       pcRef.current = pc;
@@ -215,6 +216,7 @@ const RTCPlayer = () => {
     // eslint-disable-next-line consistent-return
     return () => {
       ws.close(1000, 'change room');
+      pcRef.current.close();
       ws.removeEventListener('open', onOpenWS);
       if (signaling) {
         signaling.unsubscribe();
