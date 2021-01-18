@@ -1,22 +1,22 @@
 {
   "files": {
-    "main.css": "/remote-work-equipment-stand/static/css/main.2494a95c.chunk.css",
-    "main.js": "/remote-work-equipment-stand/static/js/main.959babc6.chunk.js",
-    "main.js.map": "/remote-work-equipment-stand/static/js/main.959babc6.chunk.js.map",
+    "main.css": "/remote-work-equipment-stand/static/css/main.b47ce606.chunk.css",
+    "main.js": "/remote-work-equipment-stand/static/js/main.c4ed4efd.chunk.js",
+    "main.js.map": "/remote-work-equipment-stand/static/js/main.c4ed4efd.chunk.js.map",
     "runtime-main.js": "/remote-work-equipment-stand/static/js/runtime-main.1fa7f728.js",
     "runtime-main.js.map": "/remote-work-equipment-stand/static/js/runtime-main.1fa7f728.js.map",
-    "static/js/2.d7bd7245.chunk.js": "/remote-work-equipment-stand/static/js/2.d7bd7245.chunk.js",
-    "static/js/2.d7bd7245.chunk.js.map": "/remote-work-equipment-stand/static/js/2.d7bd7245.chunk.js.map",
+    "static/js/2.6dd6a8f8.chunk.js": "/remote-work-equipment-stand/static/js/2.6dd6a8f8.chunk.js",
+    "static/js/2.6dd6a8f8.chunk.js.map": "/remote-work-equipment-stand/static/js/2.6dd6a8f8.chunk.js.map",
     "index.html": "/remote-work-equipment-stand/index.html",
-    "precache-manifest.81de86012c4e567fb14d5b03e6e4f5ff.js": "/remote-work-equipment-stand/precache-manifest.81de86012c4e567fb14d5b03e6e4f5ff.js",
+    "precache-manifest.5233c4b00b9f4a74032608e81e69de82.js": "/remote-work-equipment-stand/precache-manifest.5233c4b00b9f4a74032608e81e69de82.js",
     "service-worker.js": "/remote-work-equipment-stand/service-worker.js",
-    "static/css/main.2494a95c.chunk.css.map": "/remote-work-equipment-stand/static/css/main.2494a95c.chunk.css.map",
-    "static/js/2.d7bd7245.chunk.js.LICENSE.txt": "/remote-work-equipment-stand/static/js/2.d7bd7245.chunk.js.LICENSE.txt"
+    "static/css/main.b47ce606.chunk.css.map": "/remote-work-equipment-stand/static/css/main.b47ce606.chunk.css.map",
+    "static/js/2.6dd6a8f8.chunk.js.LICENSE.txt": "/remote-work-equipment-stand/static/js/2.6dd6a8f8.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.1fa7f728.js",
-    "static/js/2.d7bd7245.chunk.js",
-    "static/css/main.2494a95c.chunk.css",
-    "static/js/main.959babc6.chunk.js"
+    "static/js/2.6dd6a8f8.chunk.js",
+    "static/css/main.b47ce606.chunk.css",
+    "static/js/main.c4ed4efd.chunk.js"
   ]
 }
