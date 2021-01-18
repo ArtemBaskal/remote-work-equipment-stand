@@ -50,17 +50,30 @@ const polite = true;
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
-    maxWidth: '20rem',
     '& > *': {
       margin: theme.spacing(1),
     },
+    padding: '2rem',
   },
   progress: {
     width: '100%',
   },
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 120,
+    minWidth: '10rem',
+  },
+  video: {
+    display: 'flex',
+    justifyContent: 'center',
+    flexDirection: 'column',
+    backgroundImage: `url(${process.env.PUBLIC_URL}/chip.png)`,
+    backgroundSize: '5.5rem',
+    backgroundRepeat: 'space',
+    width: '100%',
+    minHeight: '30rem',
+  },
+  file: {
+    display: 'flex',
   },
 }));
 
@@ -212,6 +225,7 @@ const RTCPlayer = () => {
 
   useEffect(() => {
     /* TODO - add drop it text on fullscreen */
+    /* TODO - allow adding file form clipboard */
     const dropbox = window;
 
     dropbox.addEventListener('dragenter', dragenter, false);
@@ -364,6 +378,7 @@ const RTCPlayer = () => {
 
   return (
     <div className={classes.root}>
+      <Typography variant="h5" gutterBottom>Стенд</Typography>
       <FormControl variant="filled" className={classes.formControl}>
         <InputLabel htmlFor="outlined-room-native-simple">Стенд</InputLabel>
         <Select
@@ -394,11 +409,20 @@ const RTCPlayer = () => {
             })}
         </Select>
       </FormControl>
+      <section className={classes.video}>
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          onClick={togglePictureInPicture}
+          // poster={`${process.env.PUBLIC_URL}/chip.png`}
+        />
+      </section>
       <section>
-        <Typography variant="h5" gutterBottom>Отправка файла прошивки</Typography>
         <input type="file" id="files" style={{ display: 'none' }} onChange={onChange} />
         {selectedFile && (
-        <List>
+        <List className={classes.file}>
           <ListItem>
             <ListItemAvatar>
               <Avatar>
@@ -425,6 +449,18 @@ const RTCPlayer = () => {
               <LinearProgressWithLabel value={normalize(progressValue, maxProgress)} />
             </div>
           ) : <br />}
+        {selectedFile && (
+        <Button
+          component="button"
+          color="primary"
+          onClick={sendFile}
+          variant="contained"
+          type="submit"
+          size="small"
+        >
+          Отправить
+        </Button>
+        )}
         <Button
           component="label"
           htmlFor="files"
@@ -432,22 +468,8 @@ const RTCPlayer = () => {
           size="small"
           id="files"
         >
-          Выбрать
+          Загрузить прошивку
         </Button>
-        {selectedFile && (
-          <>
-            <Button
-              component="button"
-              color="primary"
-              onClick={sendFile}
-              variant="contained"
-              type="submit"
-              size="small"
-            >
-              Отправить
-            </Button>
-          </>
-        )}
         <Snackbar
           open={snackbarOpened}
           autoHideDuration={SNACKBAR_DELAY}
@@ -459,9 +481,6 @@ const RTCPlayer = () => {
           </Alert>
         </Snackbar>
       </section>
-      <Typography variant="h5" gutterBottom>Видео стенда</Typography>
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <video ref={remoteVideoRef} autoPlay playsInline onClick={togglePictureInPicture} poster={`${process.env.PUBLIC_URL}/chip.png`} />
     </div>
   );
 };
