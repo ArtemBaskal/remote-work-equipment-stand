@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/remote-work-equipment-stand/precache-manifest.1366cdfbc53bc5f643d21f3d9e8d1b7e.js"
+  "/remote-work-equipment-stand/precache-manifest.5991958e0730ba32400e9617909d350b.js"
 );
 
 self.addEventListener('message', (event) => {
