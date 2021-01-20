@@ -393,7 +393,7 @@ const RTCPlayer = () => {
             id: 'outlined-room-native-simple',
           }}
         >
-          {Array.from(({ length: 4 }), (_, idx) => idx)
+          {Array.from(({ length: 11 }), (_, idx) => idx)
             .map((idx) => {
               const noRoom = idx === 0;
               const roomIdx = noRoom ? NO_ROOM : idx.toString();
