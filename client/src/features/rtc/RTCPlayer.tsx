@@ -89,13 +89,14 @@ const RTCPlayer = () => {
   const [maxProgress, setMaxProgress] = useState(EMPTY_PROGRESS);
   const [progressValue, setProgressValue] = useState(EMPTY_PROGRESS);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [snackbarOpened, setSnackbarOpened] = useState(false);
-  const [snackbarError, setSnackbarErrorOpened] = useState('');
+  const [snackbarSuccess, setSnackbarSuccess] = useState('');
+  const [snackbarError, setSnackbarError] = useState('');
 
   const [room, setRoom] = useState<string>(NO_ROOM);
 
   const resetFileSelect = () => setSelectedFile(null);
-  const closeSnackbar = () => setSnackbarOpened(false);
+  const closeSuccessSnackbar = () => setSnackbarSuccess('');
+  const closeErrorSnackbar = () => setSnackbarError('');
 
   useEffect(() => {
     if (room === NO_ROOM) {
@@ -110,7 +111,7 @@ const RTCPlayer = () => {
     let signaling;
     const onCloseWS = (e) => {
       console.log('CLOSE WS', e);
-      setSnackbarErrorOpened('Потеряно соединение с сигнальным сервером, нельзя установить новое соединение: превышено максимальное количество участников, одновременно подключённых к стенду.');
+      setSnackbarError('Потеряно соединение с сигнальным сервером, нельзя установить новое соединение: превышено максимальное количество участников, одновременно подключённых к стенду.');
     };
     const onOpenWS = (e) => {
       console.log('OPEN WS', e);
@@ -345,7 +346,7 @@ const RTCPlayer = () => {
         setMaxProgress(EMPTY_PROGRESS);
         setProgressValue(EMPTY_PROGRESS);
         resetFileSelect();
-        setSnackbarOpened(true);
+        setSnackbarSuccess('Файл успешно отправлен');
       } else {
         // eslint-disable-next-line no-lonely-if
         if (sendFileChannel.bufferedAmount < sendFileChannel.bufferedAmountLowThreshold) {
@@ -477,19 +478,19 @@ const RTCPlayer = () => {
           Загрузить прошивку
         </Button>
         <Snackbar
-          open={snackbarOpened}
+          open={!!snackbarSuccess}
           autoHideDuration={SNACKBAR_DELAY}
-          onClose={closeSnackbar}
-          onClick={closeSnackbar}
+          onClose={closeSuccessSnackbar}
+          onClick={closeSuccessSnackbar}
         >
           <Alert severity="success">
-            Файл успешно отправлен
+            {snackbarSuccess}
           </Alert>
         </Snackbar>
         <Snackbar
           open={!!snackbarError}
-          onClose={closeSnackbar}
-          onClick={closeSnackbar}
+          onClose={closeErrorSnackbar}
+          onClick={closeErrorSnackbar}
         >
           <Alert severity="error">
             {snackbarError}
