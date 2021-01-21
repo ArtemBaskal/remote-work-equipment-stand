@@ -90,6 +90,7 @@ const RTCPlayer = () => {
   const [progressValue, setProgressValue] = useState(EMPTY_PROGRESS);
   const [selectedFile, setSelectedFile] = useState(null);
   const [snackbarOpened, setSnackbarOpened] = useState(false);
+  const [snackbarError, setSnackbarErrorOpened] = useState('');
 
   const [room, setRoom] = useState<string>(NO_ROOM);
 
@@ -102,11 +103,14 @@ const RTCPlayer = () => {
     }
 
     const roomQueryParam = generateQueryParam(QUERY_PARAM_ROOM_NAME, room);
-    const ws = new WebSocket(`wss://wss-signaling.herokuapp.com/${roomQueryParam && `?${roomQueryParam}`}`);
+    const baseURL = 'wss://wss-signaling.herokuapp.com';
+    const url = new URL(`${roomQueryParam && `?${roomQueryParam}`}`, baseURL).toString();
+    const ws = new WebSocket(url);
 
     let signaling;
     const onCloseWS = (e) => {
       console.log('CLOSE WS', e);
+      setSnackbarErrorOpened('Потеряно соединение с сигнальным сервером, нельзя установить новое соединение: превышено максимальное количество участников, одновременно подключённых к стенду.');
     };
     const onOpenWS = (e) => {
       console.log('OPEN WS', e);
@@ -480,6 +484,15 @@ const RTCPlayer = () => {
         >
           <Alert severity="success">
             Файл успешно отправлен
+          </Alert>
+        </Snackbar>
+        <Snackbar
+          open={!!snackbarError}
+          onClose={closeSnackbar}
+          onClick={closeSnackbar}
+        >
+          <Alert severity="error">
+            {snackbarError}
           </Alert>
         </Snackbar>
       </section>
