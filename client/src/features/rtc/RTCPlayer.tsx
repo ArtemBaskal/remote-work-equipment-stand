@@ -111,7 +111,7 @@ const RTCPlayer = () => {
     let signaling;
     const onCloseWS = (e) => {
       console.log('CLOSE WS', e);
-      setSnackbarError('Потеряно соединение с сигнальным сервером, нельзя установить новое соединение: превышено максимальное количество участников, одновременно подключённых к стенду.');
+      setSnackbarError('Разорвано соединение с сигнальным сервером, невозможно установить новое соединение: превышено максимальное количество участников, одновременно подключённых к стенду.');
     };
     const onOpenWS = (e) => {
       console.log('OPEN WS', e);
@@ -303,11 +303,17 @@ const RTCPlayer = () => {
     as all major user agents handle them the same way.
     Beyond that, things get more complicated.
     https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
+
+    Tests have shown that targeting a high water mark of 1 MiB
+    and setting a low water mark of 256 KiB results in adequate throughput
+    https://stackoverflow.com/questions/56327783/webrtc-datachannel-for-high-bandwidth-application
+    https://github.com/w3c/webrtc-pc/issues/1979#issuecomment-486611845
     */
-    /* TODO find out optimal buffer size by speed and reliability */
-    // 2 ** 14 === 16384;
-    // 2 ** 16 === 65535;
-    const CHUNK_SIZE = 16384;
+    // 2 ** 18 === 262144;
+    // 2 ** 20 === 1048576;
+    const CHUNK_SIZE = 262144;
+    const LOW_WATER_MARK = 262144;
+    const HIGH_WATER_MARK = 1048576;
 
     const fileReader = new FileReader();
     let offset = 0;
@@ -319,6 +325,8 @@ const RTCPlayer = () => {
     fileReader.addEventListener('abort', (event) => {
       console.log('File reading aborted: ', event);
     });
+
+    let isPaused = false;
 
     const readSlice = (byteOffset) => {
       console.log('readSlice', byteOffset);
@@ -332,6 +340,12 @@ const RTCPlayer = () => {
         console.warn('sendFileChannel.readyState is not open:', sendFileChannel.readyState);
         return;
       }
+
+      if (isPaused) {
+        console.warn('Unable to write, data channel is paused!');
+        return;
+      }
+
       const buffer = e.target.result;
       sendFileChannel.send(buffer);
 
@@ -347,18 +361,26 @@ const RTCPlayer = () => {
         setProgressValue(EMPTY_PROGRESS);
         resetFileSelect();
         setSnackbarSuccess('Файл успешно отправлен');
-      } else {
-        // eslint-disable-next-line no-lonely-if
-        if (sendFileChannel.bufferedAmount < sendFileChannel.bufferedAmountLowThreshold) {
-          readSlice(offset);
-        }
-        // Otherwise wait for bufferedamountlow event to trigger reading more data
+        return;
       }
+
+      if (isPaused || sendFileChannel.bufferedAmount < HIGH_WATER_MARK) {
+        readSlice(offset);
+      } else {
+        // Pause once high water mark has been reached
+        console.log(`Data channel ${sendFileChannel.label} paused @ ${sendFileChannel.bufferedAmount}`);
+        isPaused = true;
+      }
+      // Otherwise wait for bufferedamountlow event to trigger reading more data
     });
 
-    sendFileChannel.bufferedAmountLowThreshold = CHUNK_SIZE * 8;
+    sendFileChannel.bufferedAmountLowThreshold = LOW_WATER_MARK;
     sendFileChannel.addEventListener('bufferedamountlow', () => {
-      readSlice(offset);
+      if (isPaused) {
+        console.debug(`Data channel ${sendFileChannel.label} resumed @ ${sendFileChannel.bufferedAmount}`);
+        isPaused = false;
+        readSlice(offset);
+      }
     });
 
     sendFileChannel.onopen = () => {
