@@ -22,11 +22,11 @@ namespace WebRTCRemoteStand
     class WebCam
     {
         private WebCam() {
-            WindowsVideoEndPoint winVideoEP = new WindowsVideoEndPoint(new VpxVideoEncoder(), WebCamName);
+            _video_end_point  = new WindowsVideoEndPoint(new VpxVideoEncoder(), WebCamName);
             //WindowsVideoEndPoint winVideoEP = new WindowsVideoEndPoint(new FFmpegVideoEncoder(), WEBCAM_NAME);
             //WindowsVideoEndPoint winVideoEP = new WindowsVideoEndPoint(WEBCAM_NAME, 1920, 1080, 30);
             //winVideoEP.RestrictFormats(x => x.Codec == SIPSorceryMedia.Abstractions.V1.VideoCodecsEnum.H264);
-            bool initResult = winVideoEP.InitialiseVideoSourceDevice().Result;
+            bool initResult = _video_end_point.InitialiseVideoSourceDevice().Result;
             if (!initResult)
             {
                 throw new ApplicationException("Could not initialise video capture device.");
