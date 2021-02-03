@@ -31,8 +31,8 @@ namespace WebRTCRemoteStand
                 new RTCIceServer { urls = "stun:stun1.l.google.com:19302" },
                 new RTCIceServer { urls = "stun:stun2.l.google.com:19302" },
                 new RTCIceServer { urls = "stun:stun3.l.google.com:19302" },
-                new RTCIceServer 
-                { 
+                new RTCIceServer
+                {
                     urls = "turn:numb.viagenie.ca",
                     credential = "9u7prU:2}R{Sut~.)d[bP7,;Pgc\'Pa",
                     username = "fkrveacbukypqsqyaq@miucce.com"
@@ -41,6 +41,11 @@ namespace WebRTCRemoteStand
 
             WebRTCPeer connection = new WebRTCPeer(CreateSignalingServerUrl(), ice_candidates);
             connection.StartPeerConnection();
+            //var instance = Quartus_console.GetInstance();
+            //Console.WriteLine(instance.path_to_quartus);
+
+            //var task = instance.RunQuartusCommandAsync("quartus_pgm -m jtag –o \"p;DE10_LITE_Golden_Top.sof@1\"");
+
 
 
             //WebCam camera = WebCam.GetInstance();

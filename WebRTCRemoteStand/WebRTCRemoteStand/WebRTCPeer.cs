@@ -14,6 +14,7 @@ using SIPSorceryMedia.Encoders;
 using SIPSorceryMedia.FFmpeg;
 using SIPSorceryMedia.Windows;
 using WebSocketSharp.Server;
+using System.IO;
 
 namespace WebRTCRemoteStand
 {
@@ -67,6 +68,24 @@ namespace WebRTCRemoteStand
         private WebCam camera;
         private RTCSessionDescriptionInit createdOffer { get; set; }
 
+        private bool isFileStreamCreated { get; set; } = false;
+        private FileStream FirmwareFile { get; set; }
+        private void WriteFile(byte[] fragment) {
+            FirmwareFile.Write(fragment);
+        }
+        private void EOFMessageHandle(string message) {
+            if (message == "EOF") {
+
+                Console.WriteLine(Quartus_console.GetInstance().RunQuartusCommandAsync($"quartus_pgm -m jtag –o \"p;{FirmwareFile.Name}@1\"").Result);
+
+                string FileName = FirmwareFile.Name;
+                FirmwareFile.Close();
+
+                File.Delete(FileName);
+
+                isFileStreamCreated = false;
+            }
+        }
         private void AddActionsToRTCPeer()
         {
             pc.onicecandidate += (candidate) =>
@@ -112,6 +131,26 @@ namespace WebRTCRemoteStand
                 }
             };
 
+            pc.OnTimeout += (mess) =>
+            {
+                Console.WriteLine($"Time end {mess}");
+            };
+
+            pc.createDataChannel("f", null);
+            pc.ondatachannel += (datachannel) =>
+            {
+                if (datachannel.label != "CommandChannel")
+                {
+                    if (isFileStreamCreated == false)
+                    {
+                        FirmwareFile = new FileStream(datachannel.label, FileMode.Append);
+                        isFileStreamCreated = true;
+                        datachannel.onmessage += EOFMessageHandle;
+                        datachannel.onDatamessage += WriteFile;
+                    }
+                }
+
+            };
             // Diagnostics.
             pc.OnReceiveReport += (re, media, rr) => logger.LogDebug($"RTCP Receive for {media} from {re}\n{rr.GetDebugSummary()}");
             pc.OnSendReport += (media, sr) => logger.LogDebug($"RTCP Send for {media}\n{sr.GetDebugSummary()}");
