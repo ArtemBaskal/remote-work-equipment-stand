@@ -12,6 +12,7 @@
     <PackageReference Include="SIPSorceryMedia.Encoders" Version="0.0.10-pre" />
     <PackageReference Include="SIPSorceryMedia.FFmpeg" Version="0.0.10-pre" />
     <PackageReference Include="SIPSorceryMedia.Windows" Version="0.0.31-pre" />
+    <PackageReference Include="System.IO.Ports" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

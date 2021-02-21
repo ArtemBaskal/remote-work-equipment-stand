@@ -130,4 +130,3 @@ void SetSignalLevelOutput(int _pin, int signal_level,bool debugging_info = true)
     PrintLevelOnPin(_pin);
   }
 }
-

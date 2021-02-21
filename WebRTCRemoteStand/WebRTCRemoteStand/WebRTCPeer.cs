@@ -15,6 +15,8 @@ using SIPSorceryMedia.FFmpeg;
 using SIPSorceryMedia.Windows;
 using WebSocketSharp.Server;
 using System.IO;
+using MicrocontrollerAPI;
+using System.Text.Json;
 
 namespace WebRTCRemoteStand
 {
@@ -73,6 +75,7 @@ namespace WebRTCRemoteStand
         private void WriteFile(byte[] fragment) {
             FirmwareFile.Write(fragment);
         }
+        private Microcontroller controller { get; set; }
         private void EOFMessageHandle(string message) {
             if (message == "EOF") {
 
@@ -137,6 +140,7 @@ namespace WebRTCRemoteStand
             };
 
             pc.createDataChannel("f", null);
+            pc.createDataChannel("c", null);
             pc.ondatachannel += (datachannel) =>
             {
                 if (datachannel.label != "CommandChannel")
@@ -148,6 +152,13 @@ namespace WebRTCRemoteStand
                         datachannel.onmessage += EOFMessageHandle;
                         datachannel.onDatamessage += WriteFile;
                     }
+                }
+                else {
+                    // Maybe onDataMessage should be checked
+                    datachannel.onmessage += (string message) =>
+                    {
+                        datachannel.send(Convert.ToInt32(controller.SendCTP_Command(JsonSerializer.Deserialize<CTP_packet>(message))).ToString());
+                    };
                 }
 
             };
@@ -213,6 +224,9 @@ namespace WebRTCRemoteStand
             signaling.Connect();
             AddActionsToSignalingWebSocket();
 
+            // Create Microcontroller instance
+            controller = Microcontroller.Create(logger);
+
             // Creating RTCPeerConnection
             pc = BuildRTCPeerInstance(ice_candidates);
             AddActionsToRTCPeer();
@@ -233,6 +247,9 @@ namespace WebRTCRemoteStand
 
             // Wait for a signal saying the call failed, was cancelled with ctrl-c or completed.
             exitMre.WaitOne();
+            pc?.Close("Closed by host");
+            camera?.StopVideo();
+            controller?.Close();
         }
 
     }
