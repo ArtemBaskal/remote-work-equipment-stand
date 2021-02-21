@@ -32,10 +32,10 @@ namespace WebRTCRemoteStand
             JsonStr = JsonStr.Substring(0, JsonStr.Length - 2);
             return JsonStr;
         }
-        private static RTCPeerConnection BuildRTCPeerInstance(List<RTCIceServer> ice_candidates) {
+        private static RTCPeerConnection BuildRTCPeerInstance() {
             RTCConfiguration config = new RTCConfiguration
             {
-                iceServers = ice_candidates
+                iceServers = candidates_ice
             };
             return new RTCPeerConnection(config);
         }
@@ -65,7 +65,7 @@ namespace WebRTCRemoteStand
 
         // Signaling method through the websockets (WebSocketSharp.Server)
         private WebSocketSharp.WebSocket signaling { get; set; }
-        private RTCPeerConnection pc {get; set;}
+        private RTCPeerConnection pc { get; set; }
         private bool isOfferCreated { get; set; }
         private WebCam camera;
         private RTCSessionDescriptionInit createdOffer { get; set; }
@@ -89,11 +89,15 @@ namespace WebRTCRemoteStand
                 isFileStreamCreated = false;
             }
         }
+
+        public static List<RTCIceServer> candidates_ice {set; get;}
+        public static string signaling_url { set; get; }
+
         private void AddActionsToRTCPeer()
         {
             pc.onicecandidate += (candidate) =>
             {
-                signaling.Send("{\"data\":{\"candidate:\"" + candidate.toJSON() + "}}");
+                signaling.Send("{\"data\":{\"candidate\":" + candidate.toJSON() + "}}");
             };
 
             pc.oniceconnectionstatechange += (ice) =>
@@ -116,11 +120,14 @@ namespace WebRTCRemoteStand
                 }
                 else if (state == RTCPeerConnectionState.failed)
                 {
-                    pc.Close("Failed to connect");
+                    camera.StopVideo();
+                    RestartPeer();
                 }
                 else if (state == RTCPeerConnectionState.disconnected)
                 {
                     camera.StopVideo();
+                    
+                    RestartPeer();
                 }
                 else if (state == RTCPeerConnectionState.connecting)
                 {
@@ -157,7 +164,13 @@ namespace WebRTCRemoteStand
                     // Maybe onDataMessage should be checked
                     datachannel.onmessage += (string message) =>
                     {
-                        datachannel.send(Convert.ToInt32(controller.SendCTP_Command(JsonSerializer.Deserialize<CTP_packet>(message))).ToString());
+                        try
+                        {
+                            datachannel.send(Convert.ToInt32(controller.SendCTP_Command(JsonSerializer.Deserialize<CTP_packet>(message))).ToString());
+                        }
+                        catch (Exception ex) {
+                            logger.LogDebug($"Exception {ex.GetType()} reason/message: {ex.Message} ");
+                        }
                     };
                 }
 
@@ -211,7 +224,7 @@ namespace WebRTCRemoteStand
             };
         }
 
-        public WebRTCPeer(string signaling_url, List<RTCIceServer> ice_candidates) {
+        public WebRTCPeer() {
             // Creating logger
             logger = CreateLogger();
 
@@ -225,14 +238,33 @@ namespace WebRTCRemoteStand
             AddActionsToSignalingWebSocket();
 
             // Create Microcontroller instance
-            controller = Microcontroller.Create(logger);
+            //controller = Microcontroller.Create(logger);
 
             // Creating RTCPeerConnection
-            pc = BuildRTCPeerInstance(ice_candidates);
+            pc = BuildRTCPeerInstance();
             AddActionsToRTCPeer();
             AddWebCamVideoTrack();
 
 
+        }
+
+        public void RestartPeer() {
+            isOfferCreated = false;
+            signaling.Close();
+
+
+            logger.LogDebug("Restart peer");
+            pc.Close("Peer disconecting");
+            // Creating RTCPeerConnection
+            pc = BuildRTCPeerInstance();
+            AddActionsToRTCPeer();
+            AddWebCamVideoTrack();
+
+
+            // Create websocket for connection to signaling server
+            signaling = new WebSocketSharp.WebSocket(signaling_url);
+            signaling.Connect();
+            AddActionsToSignalingWebSocket();
         }
 
         public void StartPeerConnection() {

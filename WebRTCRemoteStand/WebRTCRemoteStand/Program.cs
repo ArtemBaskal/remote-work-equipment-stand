@@ -42,7 +42,11 @@ namespace WebRTCRemoteStand
                 }
             };
 
-            WebRTCPeer connection = new WebRTCPeer(CreateSignalingServerUrl(), ice_candidates);
+            // Crucial setting
+            WebRTCPeer.candidates_ice = ice_candidates;
+            WebRTCPeer.signaling_url = CreateSignalingServerUrl();
+
+            WebRTCPeer connection = new WebRTCPeer();
             connection.StartPeerConnection();
 
 

@@ -68,11 +68,16 @@ namespace WebRTCRemoteStand
         }
 
         public static WebCam GetInstance() {
-            if (_instance == null) {
+            if (_instance == null || _video_end_point == null) {
                 _instance = new WebCam();
             }
+            
             return _instance;
-        } 
+        }
+
+        public void DisposeVideoCamera() {
+            _video_end_point.Dispose();
+        }
 
 
 
