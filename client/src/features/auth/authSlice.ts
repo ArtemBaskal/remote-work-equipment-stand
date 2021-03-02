@@ -7,6 +7,7 @@ export type AuthState = {
     name: string,
     givenName: string,
     familyName: string,
+    id_token: string,
 }
 
 const initialState = {};

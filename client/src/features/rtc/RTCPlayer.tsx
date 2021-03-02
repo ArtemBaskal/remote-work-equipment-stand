@@ -23,6 +23,8 @@ import FolderIcon from '@material-ui/icons/AddToPhotos';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { Alert } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
+import { useSelector } from 'react-redux';
+import { AppStore } from '../../app/store';
 
 const QUERY_PARAM_ROOM_NAME = 'room';
 const FILE_DATA_CHANNEL_BINARY_TYPE = 'arraybuffer';
@@ -82,6 +84,7 @@ const normalize = (value, MAX) => ((value - MIN) * 100) / (MAX - MIN);
 
 const RTCPlayer = () => {
   const classes = useStyles();
+  const id_token = useSelector((state: AppStore) => state.auth.id_token);
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pcRef = useRef(null);
@@ -106,12 +109,11 @@ const RTCPlayer = () => {
     const roomQueryParam = generateQueryParam(QUERY_PARAM_ROOM_NAME, room);
     const baseURL = 'wss://wss-signaling.herokuapp.com';
     const url = new URL(`${roomQueryParam && `?${roomQueryParam}`}`, baseURL).toString();
-    const ws = new WebSocket(url);
+    const ws = new WebSocket(url, ['id_token', id_token]);
 
     let signaling;
     const onCloseWS = (e) => {
       console.log('CLOSE WS', e);
-      setSnackbarError('Разорвано соединение с сигнальным сервером, невозможно установить новое соединение: превышено максимальное количество участников, одновременно подключённых к стенду.');
     };
     const onOpenWS = (e) => {
       console.log('OPEN WS', e);
@@ -214,14 +216,21 @@ const RTCPlayer = () => {
         channel.addEventListener('close', onSendChannelStateChange);
       });
     };
+    const onErrorWS = (e) => {
+      console.error('ERROR WS', e);
+      setSnackbarError(`Не удалось присоединиться к стенду ${room}`);
+    };
 
     ws.addEventListener('open', onOpenWS);
     ws.addEventListener('close', onCloseWS);
+    ws.addEventListener('error', onErrorWS);
 
     // eslint-disable-next-line consistent-return
     return () => {
       ws.close(1000, 'change room');
-      pcRef.current.close();
+      if (pcRef.current) {
+        pcRef.current.close();
+      }
       ws.removeEventListener('open', onOpenWS);
       if (signaling) {
         signaling.unsubscribe();

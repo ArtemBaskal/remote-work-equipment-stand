@@ -32,7 +32,7 @@ const Auth = () => {
   const isAuthenticated = !!name;
 
   const onSuccess = (response: any) => {
-    dispatch(getProfile(response.profileObj));
+    dispatch(getProfile({ ...response.profileObj, id_token: response.tokenObj.id_token }));
   };
 
   const onFailure = (e: any) => {
