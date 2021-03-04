@@ -10,7 +10,6 @@ import {
   IconButton,
   List,
   ListItem,
-  Typography,
   FormControl,
   ListItemAvatar,
   ListItemSecondaryAction,
@@ -416,8 +415,7 @@ const RTCPlayer = () => {
 
   return (
     <div className={classes.root}>
-      <Typography variant="h5" gutterBottom>Стенд</Typography>
-      <FormControl variant="filled" className={classes.formControl}>
+      <FormControl variant="standard" className={classes.formControl}>
         <InputLabel htmlFor="outlined-room-native-simple">Стенд</InputLabel>
         <Select
           native
@@ -429,7 +427,7 @@ const RTCPlayer = () => {
             id: 'outlined-room-native-simple',
           }}
         >
-          {Array.from(({ length: 11 }), (_, idx) => idx)
+          {Array.from(({ length: 5 }), (_, idx) => idx)
             .map((idx) => {
               const noRoom = idx === 0;
               const roomIdx = noRoom ? NO_ROOM : idx.toString();
