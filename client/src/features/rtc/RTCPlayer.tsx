@@ -17,6 +17,7 @@ import {
   Snackbar,
   InputLabel,
   Select,
+  TextField,
 } from '@material-ui/core';
 import FolderIcon from '@material-ui/icons/AddToPhotos';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -78,6 +79,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const MESSAGES_CHANNEL_NAME = 'sendDataChannel';
 const MIN = 0;
 const normalize = (value, MAX) => ((value - MIN) * 100) / (MAX - MIN);
 
@@ -87,12 +89,41 @@ const RTCPlayer = () => {
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pcRef = useRef(null);
+  const dcRef = useRef(null);
 
   const [maxProgress, setMaxProgress] = useState(EMPTY_PROGRESS);
   const [progressValue, setProgressValue] = useState(EMPTY_PROGRESS);
   const [selectedFile, setSelectedFile] = useState(null);
   const [snackbarSuccess, setSnackbarSuccess] = useState('');
   const [snackbarError, setSnackbarError] = useState('');
+
+  const [inputValue, setInputValue] = useState('');
+
+  const [isDataChannelOpened, setDataChannelOpened] = useState(false);
+
+  const onInputChange = (e) => {
+    // TODO add snackbar feedback
+    if (!dcRef.current) {
+      const dataConstraint = null;
+      dcRef.current = pcRef.current.createDataChannel(MESSAGES_CHANNEL_NAME, dataConstraint);
+      const dataChannel = dcRef.current;
+      dataChannel.onopen = () => {
+        setDataChannelOpened(true);
+      };
+      dataChannel.onclose = () => {
+        setDataChannelOpened(false);
+      };
+    }
+
+    setInputValue(e.target.value);
+  };
+
+  const onSend = () => {
+    if (dcRef.current && isDataChannelOpened) {
+      dcRef.current.send(inputValue);
+      setInputValue('');
+    }
+  };
 
   const [room, setRoom] = useState<string>(NO_ROOM);
 
@@ -452,7 +483,6 @@ const RTCPlayer = () => {
           autoPlay
           playsInline
           onClick={togglePictureInPicture}
-          // poster={`${process.env.PUBLIC_URL}/chip.png`}
         />
       </section>
       <section>
@@ -525,6 +555,26 @@ const RTCPlayer = () => {
             {snackbarError}
           </Alert>
         </Snackbar>
+      </section>
+      <section>
+        <TextField
+          multiline
+          value={inputValue}
+          onChange={onInputChange}
+        />
+        <br />
+        <br />
+        <Button
+          component="button"
+          color="primary"
+          onClick={onSend}
+          variant="contained"
+          type="submit"
+          size="small"
+          disabled={!isDataChannelOpened}
+        >
+          Отправить команду
+        </Button>
       </section>
     </div>
   );
