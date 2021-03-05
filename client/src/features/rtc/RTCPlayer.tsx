@@ -2,33 +2,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SignalingChannel } from 'helpers/SignalingChannel';
 import { generateQueryParam } from 'helpers/helpers';
-import { LinearProgressWithLabel } from 'components/LinearProgressWithLabel';
 import 'features/rtc/RTCPlayer.css';
 import {
-  Avatar,
   Button,
-  IconButton,
-  List,
-  ListItem,
   FormControl,
-  ListItemAvatar,
-  ListItemSecondaryAction,
-  ListItemText,
-  Snackbar,
   InputLabel,
   Select,
   TextField,
 } from '@material-ui/core';
-import FolderIcon from '@material-ui/icons/AddToPhotos';
-import DeleteIcon from '@material-ui/icons/Delete';
-import { Alert } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
-import { useSelector } from 'react-redux';
-import { AppStore } from '../../app/store';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  setSnackbarError,
+} from 'features/fileLoader/fileLoaderSlice';
+import { FileLoader } from 'features/fileLoader/FileLoader';
+import { AppStore } from 'app/store';
 
 const QUERY_PARAM_ROOM_NAME = 'room';
-const FILE_DATA_CHANNEL_BINARY_TYPE = 'arraybuffer';
-const END_OF_FILE_MESSAGE = 'EOF';
 
 const configuration = {
   iceServers: [
@@ -44,8 +34,6 @@ const configuration = {
   ],
 };
 
-const EMPTY_PROGRESS = 0;
-const SNACKBAR_DELAY = 6000;
 const NO_ROOM = '';
 const polite = true;
 
@@ -56,9 +44,6 @@ const useStyles = makeStyles((theme) => ({
       margin: theme.spacing(1),
     },
     padding: '2rem',
-  },
-  progress: {
-    width: '100%',
   },
   formControl: {
     margin: theme.spacing(1),
@@ -74,31 +59,20 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
     minHeight: '30rem',
   },
-  file: {
-    display: 'flex',
-  },
 }));
 
 const MESSAGES_CHANNEL_NAME = 'sendDataChannel';
-const MIN = 0;
-const normalize = (value, MAX) => ((value - MIN) * 100) / (MAX - MIN);
 
 const RTCPlayer = () => {
   const classes = useStyles();
   const id_token = useSelector((state: AppStore) => state.auth.id_token);
+  const dispatch = useDispatch();
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pcRef = useRef(null);
   const dcRef = useRef(null);
 
-  const [maxProgress, setMaxProgress] = useState(EMPTY_PROGRESS);
-  const [progressValue, setProgressValue] = useState(EMPTY_PROGRESS);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [snackbarSuccess, setSnackbarSuccess] = useState('');
-  const [snackbarError, setSnackbarError] = useState('');
-
   const [inputValue, setInputValue] = useState('');
-
   const [isDataChannelOpened, setDataChannelOpened] = useState(false);
 
   const onInputChange = (e) => {
@@ -126,10 +100,6 @@ const RTCPlayer = () => {
   };
 
   const [room, setRoom] = useState<string>(NO_ROOM);
-
-  const resetFileSelect = () => setSelectedFile(null);
-  const closeSuccessSnackbar = () => setSnackbarSuccess('');
-  const closeErrorSnackbar = () => setSnackbarError('');
 
   useEffect(() => {
     if (room === NO_ROOM) {
@@ -248,7 +218,7 @@ const RTCPlayer = () => {
     };
     const onErrorWS = (e) => {
       console.error('ERROR WS', e);
-      setSnackbarError(`Не удалось присоединиться к стенду ${room}`);
+      dispatch(setSnackbarError(`Не удалось присоединиться к стенду ${room}`));
     };
 
     ws.addEventListener('open', onOpenWS);
@@ -270,40 +240,6 @@ const RTCPlayer = () => {
   }, [room]);
 
   useEffect(() => {
-    /* TODO - add drop it text on fullscreen */
-    /* TODO - allow adding file form clipboard */
-    const dropbox = window;
-
-    dropbox.addEventListener('dragenter', dragenter, false);
-    dropbox.addEventListener('dragover', dragover, false);
-    dropbox.addEventListener('drop', drop, false);
-
-    function dragenter(e: any) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-
-    function dragover(e: any) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-
-    function drop(e: any) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      const { dataTransfer: { files: [file] } } = e;
-      setSelectedFile(file);
-    }
-
-    return () => {
-      dropbox.removeEventListener('dragenter', dragenter, false);
-      dropbox.removeEventListener('dragover', dragover, false);
-      dropbox.removeEventListener('drop', drop, false);
-    };
-  }, []);
-
-  useEffect(() => {
     const handler = () => {
       if (document.visibilityState === 'visible' && document.pictureInPictureElement) {
         document.exitPictureInPicture();
@@ -315,118 +251,6 @@ const RTCPlayer = () => {
       document.removeEventListener('visibilitychange', handler);
     };
   }, []);
-
-  const onChange = (e) => {
-    const [file] = e.target.files;
-    setSelectedFile(file);
-  };
-
-  const sendFile = () => {
-    /*
-          Label may not be longer than 65,535 bytes.
-          https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createDataChannel#parameters:~:text=channel.%20This%20string-,may%20not%20be%20longer%20than%2065%2C535%20bytes.
-          Filename sizes may not exceed 255 bytes.
-          https://www.ibm.com/support/knowledgecenter/SSEQVQ_8.1.10/client/c_cmd_filespecsyntax.html
-      */
-    const dataConstraint = null;
-    /* TODO improve selectedFile transfering https://github.com/webrtc/samples/blob/gh-pages/src/content/datachannel/filetransfer/js/main.js */
-    /* TODO reuse data channel */
-    const sendFileChannel = pcRef.current.createDataChannel(selectedFile.name, dataConstraint);
-    sendFileChannel.binaryType = FILE_DATA_CHANNEL_BINARY_TYPE;
-    setMaxProgress(selectedFile.size);
-
-    /*
-    Firefox cannot send a message larger than 16 Kbytes to Chrome
-    https://viblast.com/blog/2015/2/5/webrtc-data-channel-message-size/#blog-body:~:text=Firefox%20cannot%20send%20a%20message%20larger%20than%2016%20Kbytes%20to%20Chrome
-    Messages smaller than 16kiB can be sent without concern,
-    as all major user agents handle them the same way.
-    Beyond that, things get more complicated.
-    https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
-
-    Tests have shown that targeting a high water mark of 1 MiB
-    and setting a low water mark of 256 KiB results in adequate throughput
-    https://stackoverflow.com/questions/56327783/webrtc-datachannel-for-high-bandwidth-application
-    https://github.com/w3c/webrtc-pc/issues/1979#issuecomment-486611845
-    */
-    // 2 ** 18 === 262144;
-    // 2 ** 20 === 1048576;
-    const CHUNK_SIZE = 262144;
-    const LOW_WATER_MARK = 262144;
-    const HIGH_WATER_MARK = 1048576;
-
-    const fileReader = new FileReader();
-    let offset = 0;
-
-    fileReader.addEventListener('error', (error) => {
-      console.error('Error reading selectedFile: ', error);
-    });
-
-    fileReader.addEventListener('abort', (event) => {
-      console.log('File reading aborted: ', event);
-    });
-
-    let isPaused = false;
-
-    const readSlice = (byteOffset) => {
-      console.log('readSlice', byteOffset);
-      const slice = selectedFile.slice(offset, byteOffset + CHUNK_SIZE);
-      fileReader.readAsArrayBuffer(slice);
-    };
-    // TODO UPDATE PAGE TITLE ON FILE LOAD
-    fileReader.addEventListener('load', (e) => {
-      console.log('FileReader.onload', e);
-      if (sendFileChannel.readyState !== 'open') {
-        console.warn('sendFileChannel.readyState is not open:', sendFileChannel.readyState);
-        return;
-      }
-
-      if (isPaused) {
-        console.warn('Unable to write, data channel is paused!');
-        return;
-      }
-
-      const buffer = e.target.result;
-      sendFileChannel.send(buffer);
-
-      offset += buffer.byteLength;
-      setProgressValue(offset);
-
-      if (offset >= selectedFile.size) {
-        sendFileChannel.send(END_OF_FILE_MESSAGE);
-        sendFileChannel.close();
-        setSelectedFile(null);
-        /* Reset progress */
-        setMaxProgress(EMPTY_PROGRESS);
-        setProgressValue(EMPTY_PROGRESS);
-        resetFileSelect();
-        setSnackbarSuccess('Файл успешно отправлен');
-        return;
-      }
-
-      if (isPaused || sendFileChannel.bufferedAmount < HIGH_WATER_MARK) {
-        readSlice(offset);
-      } else {
-        // Pause once high water mark has been reached
-        console.log(`Data channel ${sendFileChannel.label} paused @ ${sendFileChannel.bufferedAmount}`);
-        isPaused = true;
-      }
-      // Otherwise wait for bufferedamountlow event to trigger reading more data
-    });
-
-    sendFileChannel.bufferedAmountLowThreshold = LOW_WATER_MARK;
-    sendFileChannel.addEventListener('bufferedamountlow', () => {
-      if (isPaused) {
-        console.debug(`Data channel ${sendFileChannel.label} resumed @ ${sendFileChannel.bufferedAmount}`);
-        isPaused = false;
-        readSlice(offset);
-      }
-    });
-
-    sendFileChannel.onopen = () => {
-      const FIRST_BYTE_SLICE_NUMBER = 0;
-      readSlice(FIRST_BYTE_SLICE_NUMBER);
-    };
-  };
 
   const onChangeRoom = (e) => {
     setRoom(e.target.value);
@@ -485,77 +309,7 @@ const RTCPlayer = () => {
           onClick={togglePictureInPicture}
         />
       </section>
-      <section>
-        <input type="file" id="files" style={{ display: 'none' }} onChange={onChange} />
-        {selectedFile && (
-        <List className={classes.file}>
-          <ListItem>
-            <ListItemAvatar>
-              <Avatar>
-                <FolderIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText primary={selectedFile.name} secondary={selectedFile.lastModifiedDate.toLocaleString()} title={`${selectedFile.size} байт`} />
-            <ListItemSecondaryAction>
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={resetFileSelect}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </ListItemSecondaryAction>
-          </ListItem>
-        </List>
-        )}
-        {progressValue > EMPTY_PROGRESS
-        && selectedFile
-          ? (
-            <div className={classes.progress}>
-              <LinearProgressWithLabel value={normalize(progressValue, maxProgress)} />
-            </div>
-          ) : <br />}
-        {selectedFile && (
-        <Button
-          component="button"
-          color="primary"
-          onClick={sendFile}
-          variant="contained"
-          type="submit"
-          size="small"
-        >
-          Отправить
-        </Button>
-        )}
-        <Button
-          component="label"
-          htmlFor="files"
-          variant="contained"
-          size="small"
-          id="files"
-        >
-          Загрузить прошивку
-        </Button>
-        <Snackbar
-          open={!!snackbarSuccess}
-          autoHideDuration={SNACKBAR_DELAY}
-          onClose={closeSuccessSnackbar}
-          onClick={closeSuccessSnackbar}
-        >
-          <Alert severity="success">
-            {snackbarSuccess}
-          </Alert>
-        </Snackbar>
-        <Snackbar
-          open={!!snackbarError}
-          onClose={closeErrorSnackbar}
-          onClick={closeErrorSnackbar}
-        >
-          <Alert severity="error">
-            {snackbarError}
-          </Alert>
-        </Snackbar>
-      </section>
+      <FileLoader pcRef={pcRef} />
       <section>
         <TextField
           multiline
