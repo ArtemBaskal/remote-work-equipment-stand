@@ -3,11 +3,11 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
 import 'features/led/LedIndicator.css';
 import { setLed } from 'features/led/ledSlice';
-import { AppStore } from 'app/store';
+import { RootState } from 'app/rootReducer';
 import { Button } from '@material-ui/core';
 
 const LedIndicator: React.FC = () => {
-  const led = useSelector((state: AppStore) => state.led, shallowEqual);
+  const led = useSelector((state: RootState) => state.led, shallowEqual);
   const dispatch = useDispatch();
   const ws = useRef<WebSocket>(null);
 

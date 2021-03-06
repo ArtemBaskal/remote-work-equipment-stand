@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export type AuthState = {
+type AuthState = {
     googleId: string,
     imageUrl: string,
     email: string,

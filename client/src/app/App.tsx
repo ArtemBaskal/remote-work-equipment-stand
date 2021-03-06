@@ -9,6 +9,7 @@ import {
   Toolbar,
 } from '@material-ui/core';
 import { GoogleLogout } from 'react-google-login';
+import { SnackBar } from 'features/snackbar/SnackBar';
 
 import API_KEYS from 'API_KEYS.json';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -34,6 +35,7 @@ const App = () => {
   return (
     <>
       <CssBaseline />
+      <SnackBar />
       {isAuthenticated ? (
         <>
           <Paper elevation={1} variant="outlined" square>

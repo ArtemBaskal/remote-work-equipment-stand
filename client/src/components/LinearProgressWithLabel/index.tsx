@@ -1,7 +1,9 @@
 import React from 'react';
 import { Box, LinearProgress, Typography } from '@material-ui/core';
 
-const LinearProgressWithLabel = (props: { value: number }) => {
+type IProps = { value: number };
+
+const LinearProgressWithLabel = (props: IProps) => {
   const { value } = props;
   return (
     <Box display="flex" alignItems="center">

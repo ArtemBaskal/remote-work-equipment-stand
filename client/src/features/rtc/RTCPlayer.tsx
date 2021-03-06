@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SignalingChannel } from 'helpers/SignalingChannel';
 import { generateQueryParam } from 'helpers/helpers';
-import 'features/rtc/RTCPlayer.css';
 import {
   Button,
   FormControl,
@@ -12,11 +11,9 @@ import {
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  setSnackbarError,
-} from 'features/fileLoader/fileLoaderSlice';
+import { setSnackbarError } from 'features/snackbar/snackbarSlice';
 import { FileLoader } from 'features/fileLoader/FileLoader';
-import { AppStore } from 'app/store';
+import { RootState } from 'app/rootReducer';
 
 const QUERY_PARAM_ROOM_NAME = 'room';
 
@@ -64,9 +61,9 @@ const useStyles = makeStyles((theme) => ({
 const MESSAGES_CHANNEL_NAME = 'sendDataChannel';
 
 const RTCPlayer = () => {
-  const classes = useStyles();
-  const id_token = useSelector((state: AppStore) => state.auth.id_token);
   const dispatch = useDispatch();
+  const classes = useStyles();
+  const id_token = useSelector((state: RootState) => state.auth.id_token);
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pcRef = useRef(null);

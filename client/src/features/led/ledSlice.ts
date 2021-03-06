@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export type Led = {
+type Led = {
   pin1: boolean,
   pin2: boolean,
   pin3: boolean,
 }
 
-const initialState: Led = {
+const initialState = {
   pin1: false,
   pin2: false,
   pin3: false,

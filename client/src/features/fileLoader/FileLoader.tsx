@@ -7,26 +7,22 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemSecondaryAction,
-  ListItemText, Snackbar,
+  ListItemText,
 } from '@material-ui/core';
 import FolderIcon from '@material-ui/icons/AddToPhotos';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { Alert } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
 import { LinearProgressWithLabel } from 'components/LinearProgressWithLabel';
 import {
-  closeErrorSnackbar,
-  closeSuccessSnackbar,
   setMaxProgress,
   setProgressValue,
-  setSnackbarSuccess,
 } from 'features/fileLoader/fileLoaderSlice';
-import { AppStore } from 'app/store';
+import { RootState } from 'app/rootReducer';
+import { setSnackbarSuccess } from 'features/snackbar/snackbarSlice';
 
 const FILE_DATA_CHANNEL_BINARY_TYPE = 'arraybuffer';
 const END_OF_FILE_MESSAGE = 'EOF';
 const EMPTY_PROGRESS = 0;
-const SNACKBAR_DELAY = 6000;
 const MIN = 0;
 
 const normalize = (value: number, MAX: number) => ((value - MIN) * 100) / (MAX - MIN);
@@ -45,12 +41,11 @@ type IProps = { pcRef: React.RefObject<RTCPeerConnection> };
 export const FileLoader = ({ pcRef }: IProps) => {
   const dispatch = useDispatch();
   const classes = useStyles();
+
   const {
     maxProgress,
     progressValue,
-    snackbarSuccess,
-    snackbarError,
-  } = useSelector((state: AppStore) => state.fileLoader, shallowEqual);
+  } = useSelector((state: RootState) => state.fileLoader, shallowEqual);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -96,9 +91,6 @@ export const FileLoader = ({ pcRef }: IProps) => {
   const resetFileSelect = () => {
     setSelectedFile(null);
   };
-
-  const onCloseSuccessSnackbar = () => dispatch(closeSuccessSnackbar());
-  const onCloseErrorSnackbar = () => dispatch(closeErrorSnackbar());
 
   const sendFile = () => {
     if (!selectedFile || !pcRef.current) {
@@ -264,25 +256,6 @@ export const FileLoader = ({ pcRef }: IProps) => {
       >
         Загрузить прошивку
       </Button>
-      <Snackbar
-        open={!!snackbarSuccess}
-        autoHideDuration={SNACKBAR_DELAY}
-        onClose={onCloseSuccessSnackbar}
-        onClick={onCloseSuccessSnackbar}
-      >
-        <Alert severity="success">
-          {snackbarSuccess}
-        </Alert>
-      </Snackbar>
-      <Snackbar
-        open={!!snackbarError}
-        onClose={onCloseErrorSnackbar}
-        onClick={onCloseErrorSnackbar}
-      >
-        <Alert severity="error">
-          {snackbarError}
-        </Alert>
-      </Snackbar>
     </section>
   );
 };
