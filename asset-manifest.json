@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/remote-work-equipment-stand/static/css/main.6dea0f05.chunk.css",
-    "main.js": "/remote-work-equipment-stand/static/js/main.2c2b4371.chunk.js",
-    "main.js.map": "/remote-work-equipment-stand/static/js/main.2c2b4371.chunk.js.map",
+    "main.js": "/remote-work-equipment-stand/static/js/main.35efd9a8.chunk.js",
+    "main.js.map": "/remote-work-equipment-stand/static/js/main.35efd9a8.chunk.js.map",
     "runtime-main.js": "/remote-work-equipment-stand/static/js/runtime-main.bd49b1d7.js",
     "runtime-main.js.map": "/remote-work-equipment-stand/static/js/runtime-main.bd49b1d7.js.map",
     "static/js/2.07379672.chunk.js": "/remote-work-equipment-stand/static/js/2.07379672.chunk.js",
@@ -15,6 +15,6 @@
     "static/js/runtime-main.bd49b1d7.js",
     "static/js/2.07379672.chunk.js",
     "static/css/main.6dea0f05.chunk.css",
-    "static/js/main.2c2b4371.chunk.js"
+    "static/js/main.35efd9a8.chunk.js"
   ]
 }
