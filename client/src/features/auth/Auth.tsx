@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleLogin } from 'react-google-login';
+import { GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 import { getProfile } from 'features/auth/authSlice';
 import { useDispatch } from 'react-redux';
 import API_KEYS from 'API_KEYS.json';
@@ -40,12 +40,20 @@ const Auth = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const onSuccess = (response: any) => {
-    dispatch(getProfile({ ...response.profileObj, id_token: response.tokenObj.id_token }));
+  const onSuccess = (response: GoogleLoginResponse | GoogleLoginResponseOffline) => {
+    if (response.code) {
+      console.warn(response);
+      return;
+    }
+
+    dispatch(getProfile({
+      ...(response as GoogleLoginResponse).profileObj,
+      id_token: (response as GoogleLoginResponse).tokenObj.id_token,
+    }));
   };
 
-  const onFailure = (e: any) => {
-    console.error(e);
+  const onFailure = (error: any) => {
+    console.error(error);
   };
 
   return (

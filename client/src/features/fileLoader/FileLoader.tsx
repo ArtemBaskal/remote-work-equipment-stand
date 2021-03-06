@@ -54,32 +54,35 @@ export const FileLoader = ({ pcRef }: IProps) => {
     /* TODO - allow adding file form clipboard */
     const dropbox = window;
 
-    dropbox.addEventListener('dragenter', dragenter, false);
-    dropbox.addEventListener('dragover', dragover, false);
-    dropbox.addEventListener('drop', drop, false);
-
-    function dragenter(e: any) {
+    const dragenter = (e: DragEvent) => {
       e.stopPropagation();
       e.preventDefault();
-    }
+    };
 
-    function dragover(e: any) {
+    const dragover = (e: DragEvent) => {
       e.stopPropagation();
       e.preventDefault();
-    }
+    };
 
-    function drop(e: any) {
+    const drop = (e: DragEvent) => {
       e.stopPropagation();
       e.preventDefault();
 
-      const { dataTransfer: { files: [file] } } = e;
-      setSelectedFile(file);
-    }
+      const { dataTransfer } = e;
+
+      if (dataTransfer?.files) {
+        setSelectedFile(dataTransfer.files[0]);
+      }
+    };
+
+    dropbox.addEventListener('dragenter', dragenter);
+    dropbox.addEventListener('dragover', dragover);
+    dropbox.addEventListener('drop', drop);
 
     return () => {
-      dropbox.removeEventListener('dragenter', dragenter, false);
-      dropbox.removeEventListener('dragover', dragover, false);
-      dropbox.removeEventListener('drop', drop, false);
+      dropbox.removeEventListener('dragenter', dragenter);
+      dropbox.removeEventListener('dragover', dragover);
+      dropbox.removeEventListener('drop', drop);
     };
   }, []);
 

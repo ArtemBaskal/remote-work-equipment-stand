@@ -1,17 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { GoogleLoginResponse } from 'react-google-login';
 
-type AuthState = {
-    googleId: string,
-    imageUrl: string,
-    email: string,
-    name: string,
-    givenName: string,
-    familyName: string,
-    id_token: string,
-}
-// FIXME
-// @ts-ignore
-const initialState: AuthState = {};
+type AuthState = GoogleLoginResponse['profileObj'] & { id_token: string }
+
+const initialState: AuthState = {
+  googleId: '',
+  imageUrl: '',
+  email: '',
+  name: '',
+  givenName: '',
+  familyName: '',
+  id_token: '',
+};
 
 const authSlice = createSlice({
   name: 'auth',

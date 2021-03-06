@@ -15,17 +15,18 @@ import API_KEYS from 'API_KEYS.json';
 import CssBaseline from '@material-ui/core/CssBaseline';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-unused-vars
 import adapter from 'webrtc-adapter';
-import { clearProfile } from '../features/auth/authSlice';
-import Auth from '../features/auth/Auth';
+import Auth from 'features/auth/Auth';
+import { clearProfile } from 'features/auth/authSlice';
+import { RootState } from 'app/rootReducer';
 
 declare global {
   export interface Document {
     pictureInPictureElement: Element
-    exitPictureInPicture: () => Promise<any>
+    exitPictureInPicture: () => Promise<void>
     pictureInPictureEnabled: boolean
   }
   export interface HTMLVideoElement {
-    requestPictureInPicture: () => Promise<any>;
+    requestPictureInPicture: () => Promise<object>;
   }
 }
 
@@ -35,7 +36,7 @@ const App = () => {
     imageUrl,
     email,
     name,
-  } = useSelector((state: any) => state.auth, shallowEqual);
+  } = useSelector((state: RootState) => state.auth, shallowEqual);
 
   const isAuthenticated = !!name;
 

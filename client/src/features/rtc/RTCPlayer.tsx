@@ -116,7 +116,7 @@ const RTCPlayer = () => {
       let ignoreOffer = false;
       let isSettingRemoteAnswerPending = false;
 
-      // send any ice candidates to the other peer
+      // send all ice candidates to the other peer
       pc.onicecandidate = ({ candidate }) => {
         signaling.send({ candidate });
       };
@@ -209,7 +209,9 @@ const RTCPlayer = () => {
       if (signaling) {
         signaling.unsubscribe();
       }
-      remoteVideoRef.current!.srcObject = null;
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+      }
     };
   }, [room]);
 
