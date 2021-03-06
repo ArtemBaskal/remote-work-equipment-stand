@@ -66,17 +66,16 @@ const RTCPlayer = () => {
   const id_token = useSelector((state: RootState) => state.auth.id_token);
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const pcRef = useRef(null);
-  const dcRef = useRef(null);
+  const pcRef = useRef<RTCPeerConnection>(null);
+  const dcRef = useRef<RTCDataChannel>(null);
 
   const [inputValue, setInputValue] = useState('');
   const [isDataChannelOpened, setDataChannelOpened] = useState(false);
 
-  const onInputChange = (e) => {
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // TODO add snackbar feedback
     if (!dcRef.current) {
-      const dataConstraint = null;
-      dcRef.current = pcRef.current.createDataChannel(MESSAGES_CHANNEL_NAME, dataConstraint);
+      dcRef.current = pcRef.current.createDataChannel(MESSAGES_CHANNEL_NAME);
       const dataChannel = dcRef.current;
       dataChannel.onopen = () => {
         setDataChannelOpened(true);
@@ -91,7 +90,7 @@ const RTCPlayer = () => {
 
   const onSend = () => {
     if (dcRef.current && isDataChannelOpened) {
-      dcRef.current.send(inputValue);
+      dcRef.current!.send(inputValue);
       setInputValue('');
     }
   };
@@ -108,11 +107,11 @@ const RTCPlayer = () => {
     const url = new URL(`${roomQueryParam && `?${roomQueryParam}`}`, baseURL).toString();
     const ws = new WebSocket(url, ['id_token', id_token]);
 
-    let signaling;
-    const onCloseWS = (e) => {
+    let signaling: SignalingChannel;
+    const onCloseWS = (e: CloseEvent) => {
       console.log('CLOSE WS', e);
     };
-    const onOpenWS = (e) => {
+    const onOpenWS = (e: Event) => {
       console.log('OPEN WS', e);
       signaling = new SignalingChannel(ws);
       signaling.send({ getRemoteMedia: true });
@@ -164,6 +163,7 @@ const RTCPlayer = () => {
       };
 
       signaling.onmessage = async ({ data, data: { description, candidate } }) => {
+        // TODO add logger
         console.log(data);
 
         try {
@@ -200,7 +200,7 @@ const RTCPlayer = () => {
         }
       };
 
-      const onSendChannelStateChange = ({ target: { readyState } }) => {
+      const onSendChannelStateChange = ({ target: { readyState } }: Event | CloseEvent) => {
         console.log('Send channel state is: %s', readyState);
       };
 
@@ -213,7 +213,7 @@ const RTCPlayer = () => {
         channel.addEventListener('close', onSendChannelStateChange);
       });
     };
-    const onErrorWS = (e) => {
+    const onErrorWS = (e: Event) => {
       console.error('ERROR WS', e);
       dispatch(setSnackbarError(`Не удалось присоединиться к стенду ${room}`));
     };
@@ -249,11 +249,11 @@ const RTCPlayer = () => {
     };
   }, []);
 
-  const onChangeRoom = (e) => {
-    setRoom(e.target.value);
+  const onChangeRoom = (e: React.ChangeEvent<{ value: unknown; }>) => {
+    setRoom(String(e.target.value));
   };
 
-  const togglePictureInPicture = (e) => {
+  const togglePictureInPicture = (e: React.MouseEvent<HTMLVideoElement>) => {
     if (!remoteVideoRef.current?.srcObject) {
       return;
     }

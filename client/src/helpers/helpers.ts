@@ -1,3 +1,3 @@
 export const generateQueryParam = (
-  queryParamKey, queryParamValue,
+  queryParamKey: string, queryParamValue: string,
 ) => new URLSearchParams({ [queryParamKey]: queryParamValue }).toString();

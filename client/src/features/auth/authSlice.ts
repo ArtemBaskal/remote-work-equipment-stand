@@ -10,7 +10,8 @@ type AuthState = {
     id_token: string,
 }
 
-const initialState = {};
+// @ts-ignore
+const initialState: AuthState = {};
 
 const authSlice = createSlice({
   name: 'auth',
