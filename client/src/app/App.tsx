@@ -18,6 +18,17 @@ import adapter from 'webrtc-adapter';
 import { clearProfile } from '../features/auth/authSlice';
 import Auth from '../features/auth/Auth';
 
+declare global {
+  export interface Document {
+    pictureInPictureElement: Element
+    exitPictureInPicture: () => Promise<any>
+    pictureInPictureEnabled: boolean
+  }
+  export interface HTMLVideoElement {
+    requestPictureInPicture: () => Promise<any>;
+  }
+}
+
 const App = () => {
   const dispatch = useDispatch();
   const {

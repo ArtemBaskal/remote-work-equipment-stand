@@ -9,7 +9,7 @@ type AuthState = {
     familyName: string,
     id_token: string,
 }
-
+// FIXME
 // @ts-ignore
 const initialState: AuthState = {};
 

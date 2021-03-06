@@ -9,14 +9,7 @@ class SignalingChannel {
       this.signaling.send(JSON.stringify({ data: message }));
     }
 
-    set onmessage(handler: (message: {
-        data: {
-            description: {
-                type: RTCSessionDescription['type']
-            },
-            candidate: RTCIceCandidate,
-        }
-    }) => void) {
+    set onmessage(handler: Function) {
       const onMessage = ({ data }: { data: string }) => {
         handler(JSON.parse(data));
       };

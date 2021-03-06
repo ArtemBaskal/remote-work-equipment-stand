@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useEffect, useRef, useState } from 'react';
 import { SignalingChannel } from 'helpers/SignalingChannel';
 import { generateQueryParam } from 'helpers/helpers';
@@ -14,10 +13,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setSnackbarError } from 'features/snackbar/snackbarSlice';
 import { FileLoader } from 'features/fileLoader/FileLoader';
 import { RootState } from 'app/rootReducer';
+// @ts-ignore
+import { RTCIceServer, MyRTCConfiguration } from 'webrtcTypes.d.ts';
 
 const QUERY_PARAM_ROOM_NAME = 'room';
 
-const configuration = {
+const configuration: MyRTCConfiguration = {
   iceServers: [
     { url: 'stun:stun.l.google.com:19302' },
     { url: 'stun:stun1.l.google.com:19302' },
@@ -28,7 +29,7 @@ const configuration = {
       credential: '9u7prU:2}R{Sut~.)d[bP7,;Pgc\'Pa',
       username: 'fkrveacbukypqsqyaq@miucce.com',
     },
-  ],
+  ] as RTCIceServer[],
 };
 
 const NO_ROOM = '';
@@ -65,36 +66,13 @@ const RTCPlayer = () => {
   const classes = useStyles();
   const id_token = useSelector((state: RootState) => state.auth.id_token);
 
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const pcRef = useRef<RTCPeerConnection>(null);
-  const dcRef = useRef<RTCDataChannel>(null);
+  // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065#issuecomment-446425911
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const dcRef = useRef<RTCDataChannel | null>(null);
 
   const [inputValue, setInputValue] = useState('');
   const [isDataChannelOpened, setDataChannelOpened] = useState(false);
-
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // TODO add snackbar feedback
-    if (!dcRef.current) {
-      dcRef.current = pcRef.current.createDataChannel(MESSAGES_CHANNEL_NAME);
-      const dataChannel = dcRef.current;
-      dataChannel.onopen = () => {
-        setDataChannelOpened(true);
-      };
-      dataChannel.onclose = () => {
-        setDataChannelOpened(false);
-      };
-    }
-
-    setInputValue(e.target.value);
-  };
-
-  const onSend = () => {
-    if (dcRef.current && isDataChannelOpened) {
-      dcRef.current!.send(inputValue);
-      setInputValue('');
-    }
-  };
-
   const [room, setRoom] = useState<string>(NO_ROOM);
 
   useEffect(() => {
@@ -124,10 +102,10 @@ const RTCPlayer = () => {
         // eslint-disable-next-line no-param-reassign
         track.onunmute = () => {
           // don't set srcObject again if it is already set.
-          if (remoteVideoRef.current.srcObject) {
+          if (remoteVideoRef.current!.srcObject) {
             return;
           }
-          remoteVideoRef.current.srcObject = stream;
+          remoteVideoRef.current!.srcObject = stream;
         };
       };
 
@@ -147,6 +125,9 @@ const RTCPlayer = () => {
       pc.onnegotiationneeded = async () => {
         try {
           makingOffer = true;
+          // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/setLocalDescription#parameters
+          // TODO fix on @types/webrtc update
+          // @ts-ignore
           await pc.setLocalDescription();
           signaling.send({ description: pc.localDescription });
         } catch (err) {
@@ -162,7 +143,14 @@ const RTCPlayer = () => {
         }
       };
 
-      signaling.onmessage = async ({ data, data: { description, candidate } }) => {
+      signaling.onmessage = async ({ data, data: { description, candidate } }: ({
+        data: {
+          description: {
+            type: RTCSessionDescription['type']
+          },
+          candidate: RTCIceCandidate,
+        }
+      })) => {
         // TODO add logger
         console.log(data);
 
@@ -183,6 +171,8 @@ const RTCPlayer = () => {
             await pc.setRemoteDescription(description); // SRD rolls back as needed
             isSettingRemoteAnswerPending = false;
             if (description.type === 'offer') {
+              // TODO fix on @types/webrtc update
+              // @ts-ignore
               await pc.setLocalDescription();
               signaling.send({ description: pc.localDescription });
             }
@@ -199,19 +189,6 @@ const RTCPlayer = () => {
           console.error(err);
         }
       };
-
-      const onSendChannelStateChange = ({ target: { readyState } }: Event | CloseEvent) => {
-        console.log('Send channel state is: %s', readyState);
-      };
-
-      /* TODO remove as far as we do not accept any messages */
-      pc.addEventListener('datachannel', ({ channel }) => {
-        channel.addEventListener('message', (event) => {
-          console.log('Received Message: %s', event.data);
-        });
-        channel.addEventListener('open', onSendChannelStateChange);
-        channel.addEventListener('close', onSendChannelStateChange);
-      });
     };
     const onErrorWS = (e: Event) => {
       console.error('ERROR WS', e);
@@ -232,14 +209,14 @@ const RTCPlayer = () => {
       if (signaling) {
         signaling.unsubscribe();
       }
-      remoteVideoRef.current.srcObject = null;
+      remoteVideoRef.current!.srcObject = null;
     };
   }, [room]);
 
   useEffect(() => {
-    const handler = () => {
+    const handler = async () => {
       if (document.visibilityState === 'visible' && document.pictureInPictureElement) {
-        document.exitPictureInPicture();
+        await document.exitPictureInPicture();
       }
     };
 
@@ -249,22 +226,46 @@ const RTCPlayer = () => {
     };
   }, []);
 
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // TODO add snackbar feedback
+    if (!dcRef.current) {
+      dcRef.current = pcRef.current!.createDataChannel(MESSAGES_CHANNEL_NAME);
+      const dataChannel = dcRef.current;
+      dataChannel.onopen = () => {
+        setDataChannelOpened(true);
+      };
+      dataChannel.onclose = () => {
+        setDataChannelOpened(false);
+      };
+    }
+
+    setInputValue(e.target.value);
+  };
+
+  const onSend = () => {
+    if (dcRef.current && isDataChannelOpened) {
+      dcRef.current.send(inputValue);
+      setInputValue('');
+    }
+  };
+
   const onChangeRoom = (e: React.ChangeEvent<{ value: unknown; }>) => {
     setRoom(String(e.target.value));
   };
 
-  const togglePictureInPicture = (e: React.MouseEvent<HTMLVideoElement>) => {
+  const togglePictureInPicture = async (e: React.MouseEvent<HTMLVideoElement>) => {
     if (!remoteVideoRef.current?.srcObject) {
       return;
     }
 
     if (document.pictureInPictureElement) {
-      document.exitPictureInPicture();
+      await document.exitPictureInPicture();
     } else if (document.pictureInPictureEnabled) {
-      e.target.requestPictureInPicture();
+      await e.currentTarget.requestPictureInPicture();
     }
   };
 
+  // TODO manage rooms from signaling server
   return (
     <div className={classes.root}>
       <FormControl variant="standard" className={classes.formControl}>
