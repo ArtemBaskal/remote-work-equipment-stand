@@ -1,22 +1,20 @@
 {
   "files": {
-    "main.css": "/remote-work-equipment-stand/static/css/main.5ecd60fb.chunk.css",
-    "main.js": "/remote-work-equipment-stand/static/js/main.620f978a.chunk.js",
-    "main.js.map": "/remote-work-equipment-stand/static/js/main.620f978a.chunk.js.map",
-    "runtime-main.js": "/remote-work-equipment-stand/static/js/runtime-main.1fa7f728.js",
-    "runtime-main.js.map": "/remote-work-equipment-stand/static/js/runtime-main.1fa7f728.js.map",
-    "static/js/2.5a41fa4c.chunk.js": "/remote-work-equipment-stand/static/js/2.5a41fa4c.chunk.js",
-    "static/js/2.5a41fa4c.chunk.js.map": "/remote-work-equipment-stand/static/js/2.5a41fa4c.chunk.js.map",
+    "main.css": "/remote-work-equipment-stand/static/css/main.6dea0f05.chunk.css",
+    "main.js": "/remote-work-equipment-stand/static/js/main.2c2b4371.chunk.js",
+    "main.js.map": "/remote-work-equipment-stand/static/js/main.2c2b4371.chunk.js.map",
+    "runtime-main.js": "/remote-work-equipment-stand/static/js/runtime-main.bd49b1d7.js",
+    "runtime-main.js.map": "/remote-work-equipment-stand/static/js/runtime-main.bd49b1d7.js.map",
+    "static/js/2.07379672.chunk.js": "/remote-work-equipment-stand/static/js/2.07379672.chunk.js",
+    "static/js/2.07379672.chunk.js.map": "/remote-work-equipment-stand/static/js/2.07379672.chunk.js.map",
     "index.html": "/remote-work-equipment-stand/index.html",
-    "precache-manifest.c638ad73582f6c85ad05e967d5f8f5a0.js": "/remote-work-equipment-stand/precache-manifest.c638ad73582f6c85ad05e967d5f8f5a0.js",
-    "service-worker.js": "/remote-work-equipment-stand/service-worker.js",
-    "static/css/main.5ecd60fb.chunk.css.map": "/remote-work-equipment-stand/static/css/main.5ecd60fb.chunk.css.map",
-    "static/js/2.5a41fa4c.chunk.js.LICENSE.txt": "/remote-work-equipment-stand/static/js/2.5a41fa4c.chunk.js.LICENSE.txt"
+    "static/css/main.6dea0f05.chunk.css.map": "/remote-work-equipment-stand/static/css/main.6dea0f05.chunk.css.map",
+    "static/js/2.07379672.chunk.js.LICENSE.txt": "/remote-work-equipment-stand/static/js/2.07379672.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.1fa7f728.js",
-    "static/js/2.5a41fa4c.chunk.js",
-    "static/css/main.5ecd60fb.chunk.css",
-    "static/js/main.620f978a.chunk.js"
+    "static/js/runtime-main.bd49b1d7.js",
+    "static/js/2.07379672.chunk.js",
+    "static/css/main.6dea0f05.chunk.css",
+    "static/js/main.2c2b4371.chunk.js"
   ]
 }
