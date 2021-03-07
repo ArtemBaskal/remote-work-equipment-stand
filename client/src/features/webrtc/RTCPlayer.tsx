@@ -4,14 +4,22 @@ import { generateQueryParam } from 'helpers/helpers';
 import {
   Button,
   FormControl,
+  Grid,
   InputLabel,
   Select,
   TextField,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import SendIcon from '@material-ui/icons/Send';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSnackbarError, setSnackbarSuccess } from 'features/snackbar/snackbarSlice';
 import { FileLoader } from 'features/fileLoader/FileLoader';
+import {
+  setPeerConnectionClose,
+  setPeerConnectionOpen,
+  setDataChannelOpen,
+  setDataChannelClose,
+} from 'features/webrtc/webrtcSlice';
 import { RootState } from 'app/rootReducer';
 // @ts-ignore
 import { RTCIceServer, MyRTCConfiguration } from 'webrtcTypes.d.ts';
@@ -65,6 +73,8 @@ const RTCPlayer = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
   const id_token = useSelector((state: RootState) => state.auth.id_token);
+  const peerConnectionOpen = useSelector((state: RootState) => state.webrtc.peerConnectionOpen);
+  const dataChannelOpen = useSelector((state: RootState) => state.webrtc.dataChannelOpen);
 
   // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065#issuecomment-446425911
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -72,7 +82,6 @@ const RTCPlayer = () => {
   const dcRef = useRef<RTCDataChannel | null>(null);
 
   const [inputValue, setInputValue] = useState('');
-  const [isDataChannelOpened, setDataChannelOpened] = useState(false);
   const [room, setRoom] = useState<string>(NO_ROOM);
 
   useEffect(() => {
@@ -101,6 +110,7 @@ const RTCPlayer = () => {
         // once media for a remote track arrives, show it in the remote video element
         // eslint-disable-next-line no-param-reassign
         track.onunmute = () => {
+          dispatch(setPeerConnectionOpen());
           dispatch(setSnackbarSuccess('Соединение установлено'));
           // don't set srcObject again if it is already set.
           if (remoteVideoRef.current!.srcObject) {
@@ -203,10 +213,19 @@ const RTCPlayer = () => {
     // eslint-disable-next-line consistent-return
     return () => {
       ws.close(1000, 'change room');
+      if (dcRef.current) {
+        dcRef.current.close();
+        dcRef.current = null;
+        dispatch(setDataChannelClose());
+      }
       if (pcRef.current) {
         pcRef.current.close();
+        pcRef.current = null;
+        dispatch(setPeerConnectionClose());
       }
       ws.removeEventListener('open', onOpenWS);
+      ws.removeEventListener('close', onCloseWS);
+      ws.removeEventListener('error', onErrorWS);
       if (signaling) {
         signaling.unsubscribe();
       }
@@ -230,19 +249,19 @@ const RTCPlayer = () => {
   }, []);
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!pcRef.current) {
+    if (!peerConnectionOpen) {
       dispatch(setSnackbarError('Не установлено соединение со стендом'));
       return;
     }
-    // TODO add snackbar feedback
-    if (!dcRef.current) {
+
+    if (!dataChannelOpen) {
       dcRef.current = pcRef.current!.createDataChannel(MESSAGES_CHANNEL_NAME);
       const dataChannel = dcRef.current;
       dataChannel.onopen = () => {
-        setDataChannelOpened(true);
+        dispatch(setDataChannelOpen());
       };
       dataChannel.onclose = () => {
-        setDataChannelOpened(false);
+        dispatch(setDataChannelClose());
       };
     }
 
@@ -250,7 +269,7 @@ const RTCPlayer = () => {
   };
 
   const onSend = () => {
-    if (dcRef.current && isDataChannelOpened) {
+    if (dcRef.current && dataChannelOpen) {
       dcRef.current.send(inputValue);
       dispatch(setSnackbarSuccess('Команда отправлена'));
       setInputValue('');
@@ -258,7 +277,13 @@ const RTCPlayer = () => {
   };
 
   const onChangeRoom = (e: React.ChangeEvent<{ value: unknown; }>) => {
-    setRoom(String(e.target.value));
+    const { value } = e.target;
+    if (typeof value !== 'string') {
+      console.error('Room is not a string: ', value);
+      return;
+    }
+
+    setRoom(value);
   };
 
   const togglePictureInPicture = async (e: React.MouseEvent<HTMLVideoElement>) => {
@@ -317,25 +342,31 @@ const RTCPlayer = () => {
       </section>
       <FileLoader pcRef={pcRef} />
       <section>
-        <TextField
-          label="Команда"
-          multiline
-          value={inputValue}
-          onChange={onInputChange}
-        />
-        <br />
-        <br />
-        <Button
-          component="button"
-          color="primary"
-          onClick={onSend}
-          variant="contained"
-          type="submit"
-          size="small"
-          disabled={!isDataChannelOpened}
-        >
-          Отправить команду
-        </Button>
+        <Grid container spacing={1} alignItems="flex-end">
+          <Grid item>
+            <TextField
+              label="Команда"
+              multiline
+              value={inputValue}
+              onChange={onInputChange}
+              disabled={!peerConnectionOpen}
+            />
+          </Grid>
+          <Grid item>
+            <Button
+              component="button"
+              color="primary"
+              onClick={onSend}
+              variant="text"
+              type="submit"
+              size="small"
+              disabled={!dataChannelOpen || !inputValue?.trim()}
+              endIcon={<SendIcon />}
+            >
+              Отправить
+            </Button>
+          </Grid>
+        </Grid>
       </section>
     </div>
   );

@@ -1,3 +1,4 @@
 cd client
 yarn lint
+yarn check-ts
 yarn test --watchAll=false

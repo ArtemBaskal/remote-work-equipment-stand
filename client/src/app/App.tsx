@@ -1,5 +1,5 @@
 import React from 'react';
-import RTCPlayer from 'features/rtc/RTCPlayer';
+import RTCPlayer from 'features/webrtc/RTCPlayer';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import {
   Box,

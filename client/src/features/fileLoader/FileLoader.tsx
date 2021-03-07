@@ -1,7 +1,8 @@
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import {
-  Avatar, Button,
+  Avatar,
+  Button,
   IconButton,
   List,
   ListItem,
@@ -9,8 +10,8 @@ import {
   ListItemSecondaryAction,
   ListItemText,
 } from '@material-ui/core';
-import FolderIcon from '@material-ui/icons/AddToPhotos';
-import DeleteIcon from '@material-ui/icons/Delete';
+import { Delete as DeleteIcon, CloudUpload as CloudUploadIcon, AttachFile as AttachFileIcon } from '@material-ui/icons';
+import SendIcon from '@material-ui/icons/Send';
 import { makeStyles } from '@material-ui/core/styles';
 import { LinearProgressWithLabel } from 'components/LinearProgressWithLabel';
 import {
@@ -18,7 +19,7 @@ import {
   setProgressValue,
 } from 'features/fileLoader/fileLoaderSlice';
 import { RootState } from 'app/rootReducer';
-import { setSnackbarSuccess } from 'features/snackbar/snackbarSlice';
+import { setSnackbarSuccess, setSnackbarError } from 'features/snackbar/snackbarSlice';
 
 const FILE_DATA_CHANNEL_BINARY_TYPE = 'arraybuffer';
 const END_OF_FILE_MESSAGE = 'EOF';
@@ -28,6 +29,9 @@ const MIN = 0;
 const normalize = (value: number, MAX: number) => ((value - MIN) * 100) / (MAX - MIN);
 
 const useStyles = makeStyles(() => ({
+  button: {
+    marginRight: '0.5rem',
+  },
   progress: {
     width: '100%',
   },
@@ -41,6 +45,7 @@ type IProps = { pcRef: React.RefObject<RTCPeerConnection> };
 export const FileLoader = ({ pcRef }: IProps) => {
   const dispatch = useDispatch();
   const classes = useStyles();
+  const peerConnectionOpen = useSelector((state: RootState) => state.webrtc.peerConnectionOpen);
 
   const {
     maxProgress,
@@ -96,33 +101,38 @@ export const FileLoader = ({ pcRef }: IProps) => {
   };
 
   const sendFile = () => {
-    if (!selectedFile || !pcRef.current) {
+    if (!pcRef.current || !peerConnectionOpen) {
+      dispatch(setSnackbarError('Не установлено соединение со стендом'));
+      return;
+    }
+    if (!selectedFile) {
+      dispatch(setSnackbarError('Файл не выбран'));
       return;
     }
     /*
-                      Label may not be longer than 65,535 bytes.
-                      https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createDataChannel#parameters:~:text=channel.%20This%20string-,may%20not%20be%20longer%20than%2065%2C535%20bytes.
-                      Filename sizes may not exceed 255 bytes.
-                      https://www.ibm.com/support/knowledgecenter/SSEQVQ_8.1.10/client/c_cmd_filespecsyntax.html
-                  */
+                          Label may not be longer than 65,535 bytes.
+                          https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createDataChannel#parameters:~:text=channel.%20This%20string-,may%20not%20be%20longer%20than%2065%2C535%20bytes.
+                          Filename sizes may not exceed 255 bytes.
+                          https://www.ibm.com/support/knowledgecenter/SSEQVQ_8.1.10/client/c_cmd_filespecsyntax.html
+                      */
     /* TODO improve selectedFile transferring https://github.com/webrtc/samples/blob/gh-pages/src/content/datachannel/filetransfer/js/main.js */
     const sendFileChannel = pcRef.current.createDataChannel(selectedFile.name);
     sendFileChannel.binaryType = FILE_DATA_CHANNEL_BINARY_TYPE;
     dispatch(setMaxProgress(selectedFile.size));
 
     /*
-                Firefox cannot send a message larger than 16 Kbytes to Chrome
-                https://viblast.com/blog/2015/2/5/webrtc-data-channel-message-size/#blog-body:~:text=Firefox%20cannot%20send%20a%20message%20larger%20than%2016%20Kbytes%20to%20Chrome
-                Messages smaller than 16kiB can be sent without concern,
-                as all major user agents handle them the same way.
-                Beyond that, things get more complicated.
-                https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
+                    Firefox cannot send a message larger than 16 Kbytes to Chrome
+                    https://viblast.com/blog/2015/2/5/webrtc-data-channel-message-size/#blog-body:~:text=Firefox%20cannot%20send%20a%20message%20larger%20than%2016%20Kbytes%20to%20Chrome
+                    Messages smaller than 16kiB can be sent without concern,
+                    as all major user agents handle them the same way.
+                    Beyond that, things get more complicated.
+                    https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
 
-                Tests have shown that targeting a high water mark of 1 MiB
-                and setting a low water mark of 256 KiB results in adequate throughput
-                https://stackoverflow.com/questions/56327783/webrtc-datachannel-for-high-bandwidth-application
-                https://github.com/w3c/webrtc-pc/issues/1979#issuecomment-486611845
-                */
+                    Tests have shown that targeting a high water mark of 1 MiB
+                    and setting a low water mark of 256 KiB results in adequate throughput
+                    https://stackoverflow.com/questions/56327783/webrtc-datachannel-for-high-bandwidth-application
+                    https://github.com/w3c/webrtc-pc/issues/1979#issuecomment-486611845
+                    */
     // 2 ** 18 === 262144;
     // 2 ** 20 === 1048576;
     const CHUNK_SIZE = 262144;
@@ -211,7 +221,7 @@ export const FileLoader = ({ pcRef }: IProps) => {
           <ListItem>
             <ListItemAvatar>
               <Avatar>
-                <FolderIcon />
+                <AttachFileIcon />
               </Avatar>
             </ListItemAvatar>
             <ListItemText
@@ -246,6 +256,8 @@ export const FileLoader = ({ pcRef }: IProps) => {
           variant="contained"
           type="submit"
           size="small"
+          className={classes.button}
+          endIcon={<SendIcon />}
         >
           Отправить
         </Button>
@@ -256,6 +268,8 @@ export const FileLoader = ({ pcRef }: IProps) => {
         variant="contained"
         size="small"
         id="files"
+        startIcon={<CloudUploadIcon />}
+        disabled={!peerConnectionOpen}
       >
         Загрузить прошивку
       </Button>
