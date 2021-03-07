@@ -174,7 +174,7 @@ export const FileLoader = ({ pcRef }: IProps) => {
         dispatch(setMaxProgress(EMPTY_PROGRESS));
         dispatch(setProgressValue(EMPTY_PROGRESS));
         resetFileSelect();
-        dispatch(setSnackbarSuccess('Файл успешно отправлен'));
+        dispatch(setSnackbarSuccess('Файл отправлен'));
         return;
       }
 

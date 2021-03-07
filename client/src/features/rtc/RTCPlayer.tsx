@@ -10,7 +10,7 @@ import {
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDispatch, useSelector } from 'react-redux';
-import { setSnackbarError } from 'features/snackbar/snackbarSlice';
+import { setSnackbarError, setSnackbarSuccess } from 'features/snackbar/snackbarSlice';
 import { FileLoader } from 'features/fileLoader/FileLoader';
 import { RootState } from 'app/rootReducer';
 // @ts-ignore
@@ -101,6 +101,7 @@ const RTCPlayer = () => {
         // once media for a remote track arrives, show it in the remote video element
         // eslint-disable-next-line no-param-reassign
         track.onunmute = () => {
+          dispatch(setSnackbarSuccess('Соединение установлено'));
           // don't set srcObject again if it is already set.
           if (remoteVideoRef.current!.srcObject) {
             return;
@@ -229,6 +230,10 @@ const RTCPlayer = () => {
   }, []);
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!pcRef.current) {
+      dispatch(setSnackbarError('Не установлено соединение со стендом'));
+      return;
+    }
     // TODO add snackbar feedback
     if (!dcRef.current) {
       dcRef.current = pcRef.current!.createDataChannel(MESSAGES_CHANNEL_NAME);
@@ -247,6 +252,7 @@ const RTCPlayer = () => {
   const onSend = () => {
     if (dcRef.current && isDataChannelOpened) {
       dcRef.current.send(inputValue);
+      dispatch(setSnackbarSuccess('Команда отправлена'));
       setInputValue('');
     }
   };
@@ -312,6 +318,7 @@ const RTCPlayer = () => {
       <FileLoader pcRef={pcRef} />
       <section>
         <TextField
+          label="Команда"
           multiline
           value={inputValue}
           onChange={onInputChange}
