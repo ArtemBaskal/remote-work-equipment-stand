@@ -2,10 +2,11 @@ import React from 'react';
 import { GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 import { getProfile } from 'features/auth/authSlice';
 import { useDispatch } from 'react-redux';
-import API_KEYS from 'API_KEYS.json';
 import { makeStyles } from '@material-ui/core/styles';
 import { Paper } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
+
+const API_KEYS = require('../../API_KEYS.json');
 
 const useStyles = makeStyles((theme) => ({
   layout: {
