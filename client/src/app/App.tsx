@@ -10,14 +10,14 @@ import {
 } from '@material-ui/core';
 import { GoogleLogout } from 'react-google-login';
 import { SnackBar } from 'features/snackbar/SnackBar';
-
-import API_KEYS from 'API_KEYS.json';
 import CssBaseline from '@material-ui/core/CssBaseline';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-unused-vars
 import adapter from 'webrtc-adapter';
 import Auth from 'features/auth/Auth';
 import { clearProfile } from 'features/auth/authSlice';
 import { RootState } from 'app/rootReducer';
+
+const API_KEYS = require('../API_KEYS.json');
 
 declare global {
   export interface Document {

@@ -30,7 +30,8 @@ module.exports = {
         "import/prefer-default-export": 0,
         "react/jsx-props-no-spreading": 0,
         "@typescript-eslint/no-unused-vars": "error",
-        "no-use-before-define": 0
+        "no-use-before-define": 0,
+        "linebreak-style": 0
     },
     "settings": {
         "import/resolver": {
