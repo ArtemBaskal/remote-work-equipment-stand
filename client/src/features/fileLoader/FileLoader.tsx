@@ -135,6 +135,8 @@ export const FileLoader = ({ pcRef }: IProps) => {
                     */
     // 2 ** 18 === 262144;
     // 2 ** 20 === 1048576;
+    /* Chunk size is selected to be compatible with Microsoft MixedReality-WebRTC C# library
+    https://github.com/microsoft/MixedReality-WebRTC/issues/695 */
     const CHUNK_SIZE = 61440;
     const LOW_WATER_MARK = 262144;
     const HIGH_WATER_MARK = 1048576;
