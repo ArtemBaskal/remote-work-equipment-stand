@@ -40,7 +40,9 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type IProps = { pcRef: React.RefObject<RTCPeerConnection> };
+type IProps = {
+  pcRef: React.MutableRefObject<RTCPeerConnection | null>
+};
 
 export const FileLoader = ({ pcRef }: IProps) => {
   const dispatch = useDispatch();

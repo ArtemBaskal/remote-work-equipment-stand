@@ -2,24 +2,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import { SignalingChannel } from 'helpers/SignalingChannel';
 import { generateQueryParam } from 'helpers/helpers';
 import {
-  Button,
   FormControl,
-  Grid,
   InputLabel,
   Select,
-  TextField,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import SendIcon from '@material-ui/icons/Send';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSnackbarError, setSnackbarSuccess } from 'features/snackbar/snackbarSlice';
 import { FileLoader } from 'features/fileLoader/FileLoader';
 import {
   setPeerConnectionClose,
   setPeerConnectionOpen,
-  setDataChannelOpen,
   setDataChannelClose,
 } from 'features/webrtc/webrtcSlice';
+import { Controls } from 'features/webrtc/Controls';
 import { RootState } from 'app/rootReducer';
 // @ts-ignore
 import { RTCIceServer, MyRTCConfiguration } from 'webrtcTypes.d.ts';
@@ -67,21 +63,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const MESSAGES_CHANNEL_NAME = 'sendDataChannel';
-
 const RTCPlayer = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
   const id_token = useSelector((state: RootState) => state.auth.id_token);
-  const peerConnectionOpen = useSelector((state: RootState) => state.webrtc.peerConnectionOpen);
-  const dataChannelOpen = useSelector((state: RootState) => state.webrtc.dataChannelOpen);
 
   // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065#issuecomment-446425911
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
 
-  const [inputValue, setInputValue] = useState('');
   const [room, setRoom] = useState<string>(NO_ROOM);
 
   useEffect(() => {
@@ -248,34 +239,6 @@ const RTCPlayer = () => {
     };
   }, []);
 
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!peerConnectionOpen) {
-      dispatch(setSnackbarError('Не установлено соединение со стендом'));
-      return;
-    }
-
-    if (!dataChannelOpen) {
-      dcRef.current = pcRef.current!.createDataChannel(MESSAGES_CHANNEL_NAME);
-      const dataChannel = dcRef.current;
-      dataChannel.onopen = () => {
-        dispatch(setDataChannelOpen());
-      };
-      dataChannel.onclose = () => {
-        dispatch(setDataChannelClose());
-      };
-    }
-
-    setInputValue(e.target.value);
-  };
-
-  const onSend = () => {
-    if (dcRef.current && dataChannelOpen) {
-      dcRef.current.send(inputValue);
-      dispatch(setSnackbarSuccess('Команда отправлена'));
-      setInputValue('');
-    }
-  };
-
   const onChangeRoom = (e: React.ChangeEvent<{ value: unknown; }>) => {
     const { value } = e.target;
     if (typeof value !== 'string') {
@@ -341,33 +304,7 @@ const RTCPlayer = () => {
         />
       </section>
       <FileLoader pcRef={pcRef} />
-      <section>
-        <Grid container spacing={1} alignItems="flex-end">
-          <Grid item>
-            <TextField
-              label="Команда"
-              multiline
-              value={inputValue}
-              onChange={onInputChange}
-              disabled={!peerConnectionOpen}
-            />
-          </Grid>
-          <Grid item>
-            <Button
-              component="button"
-              color="primary"
-              onClick={onSend}
-              variant="text"
-              type="submit"
-              size="small"
-              disabled={!dataChannelOpen || !inputValue?.trim()}
-              endIcon={<SendIcon />}
-            >
-              Отправить
-            </Button>
-          </Grid>
-        </Grid>
-      </section>
+      <Controls pcRef={pcRef} dcRef={dcRef} />
     </div>
   );
 };
