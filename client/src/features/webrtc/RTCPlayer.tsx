@@ -16,6 +16,7 @@ import {
   setDataChannelClose,
 } from 'features/webrtc/webrtcSlice';
 import { Controls } from 'features/webrtc/Controls';
+import { openDataChannel } from 'features/webrtc/helpers';
 import { RootState } from 'app/rootReducer';
 // @ts-ignore
 import { RTCIceServer, MyRTCConfiguration } from 'webrtcTypes.d.ts';
@@ -103,6 +104,20 @@ const RTCPlayer = () => {
         track.onunmute = () => {
           dispatch(setPeerConnectionOpen());
           dispatch(setSnackbarSuccess('Соединение установлено'));
+
+          if (!dcRef.current) {
+            console.log('opening data channel');
+            openDataChannel({
+              dcRef,
+              pcRef,
+              peerConnectionOpen: true,
+              dataChannelOpen: false,
+              dispatch,
+            });
+          } else {
+            console.warn('data chanel is already opened');
+          }
+
           // don't set srcObject again if it is already set.
           if (remoteVideoRef.current!.srcObject) {
             return;
@@ -261,19 +276,20 @@ const RTCPlayer = () => {
     }
   };
 
+  const id = 'outlined-room-native-simple';
   // TODO manage rooms from signaling server
   return (
     <div className={classes.root}>
       <FormControl variant="standard" className={classes.formControl}>
-        <InputLabel htmlFor="outlined-room-native-simple">Стенд</InputLabel>
+        <InputLabel htmlFor={id}>Стенд</InputLabel>
         <Select
           native
           value={room}
           onChange={onChangeRoom}
-          label="Стенда"
+          label="Стенд"
           inputProps={{
             name: 'Стенд',
-            id: 'outlined-room-native-simple',
+            id,
           }}
         >
           {Array.from(({ length: 5 }), (_, idx) => idx)
@@ -304,7 +320,7 @@ const RTCPlayer = () => {
         />
       </section>
       <FileLoader pcRef={pcRef} />
-      <Controls pcRef={pcRef} dcRef={dcRef} />
+      <Controls dcRef={dcRef} />
     </div>
   );
 };

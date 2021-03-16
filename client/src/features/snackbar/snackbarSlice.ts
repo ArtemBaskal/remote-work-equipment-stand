@@ -21,6 +21,12 @@ const snackbarSlice = createSlice({
       state.open = true;
       return state;
     },
+    setSnackbarInfo(state, action: PayloadAction<string>) {
+      state.snackbarMessage = action.payload;
+      state.type = 'info';
+      state.open = true;
+      return state;
+    },
     setSnackbarError(state, action: PayloadAction<string>) {
       state.snackbarMessage = action.payload;
       state.type = 'error';
@@ -38,6 +44,7 @@ const snackbarSlice = createSlice({
 export const {
   reset,
   setSnackbarSuccess,
+  setSnackbarInfo,
   setSnackbarError,
   closeSnackbar,
 } = snackbarSlice.actions;

@@ -31,7 +31,9 @@ module.exports = {
         "react/jsx-props-no-spreading": 0,
         "@typescript-eslint/no-unused-vars": "error",
         "no-use-before-define": 0,
-        "linebreak-style": 0
+        "linebreak-style": 0,
+        "no-shadow": 'off',
+        "@typescript-eslint/no-shadow": ["error"],
     },
     "settings": {
         "import/resolver": {

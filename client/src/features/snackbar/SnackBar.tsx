@@ -26,6 +26,7 @@ export const SnackBar = ({ snackbarDelay }: IProps) => {
 
   return (
     <Snackbar
+      key={snackbarMessage}
       open={open}
       autoHideDuration={snackbarDelay}
       onClose={onCloseSnackbar}
