@@ -55,7 +55,6 @@ const useStyles = makeStyles((theme) => ({
   video: {
     display: 'flex',
     justifyContent: 'center',
-    flexDirection: 'column',
     backgroundImage: `url(${process.env.PUBLIC_URL}/chip.png)`,
     backgroundSize: '5.5rem',
     backgroundRepeat: 'space',
