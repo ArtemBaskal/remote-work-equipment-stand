@@ -1,3 +1,9 @@
+
+## Usage example
+![WORK_SAMPLE](https://user-images.githubusercontent.com/45331104/112548148-d3220900-8dcc-11eb-844d-0e5f0da62fd8.gif)
+
+https://www.youtube.com/watch?v=YhcDuMv-6kw
+
 ## OAuth2 token
 
 [Paste Google OAuth2 app's client ID](https://developers.google.com/identity/sign-in/web/sign-in) to the file `client/src/API_KEYS_EXAMPLE.json` `GOOGLE_AUTH` field of `API_KEYS_EXAMPLE.json` file and then rename file to `API_KEYS.json`.
